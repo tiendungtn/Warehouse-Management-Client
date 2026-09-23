@@ -1,106 +1,104 @@
-import { NavLink } from "react-router-dom";
+import { LogOut, UserCircle } from "lucide-react";
 
-import {
-  LayoutDashboard,
-  Package,
-  Tags,
-  Download,
-  Upload,
-  Receipt,
-  BarChart3,
-  Users,
-} from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
 
-export default function Sidebar() {
-  const { user } = useAuth();
+export default function Header() {
+  const { user, logout } = useAuth();
 
-  const isAdmin = user?.role === "Admin";
+  const location = useLocation();
 
-  const isManager = user?.role === "Manager";
+  const pageInfo = getPageInfo(location.pathname);
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="sidebar-logo">
-          <Package size={22} />
-        </div>
+    <header className="header">
+      <div>
+        <h1 className="header-title">{pageInfo.title}</h1>
 
-        <div>
-          <div className="brand-title">Quản Lý Kho</div>
-
-          <div className="brand-subtitle">Warehouse Management</div>
-        </div>
+        <p className="header-subtitle">{pageInfo.subtitle}</p>
       </div>
 
-      <nav className="sidebar-nav">
-        <NavItem
-          to="/dashboard"
-          icon={<LayoutDashboard size={18} />}
-          label="Dashboard"
-        />
+      <div className="header-user">
+        <UserCircle size={32} strokeWidth={1.7} />
 
-        <NavItem to="/products" icon={<Package size={18} />} label="Sản phẩm" />
+        <div className="header-user-info">
+          <span className="header-user-name">
+            {user?.fullname || user?.username || "Người dùng"}
+          </span>
 
-        {(isAdmin || isManager) && (
-          <NavItem
-            to="/categories"
-            icon={<Tags size={18} />}
-            label="Danh mục"
-          />
-        )}
+          <span className="header-user-role">{user?.role || ""}</span>
+        </div>
 
-        <NavItem
-          to="/receipts"
-          icon={<Download size={18} />}
-          label="Phiếu nhập"
-        />
+        <button type="button" className="logout-button" onClick={logout}>
+          <LogOut size={17} />
 
-        <NavItem to="/issues" icon={<Upload size={18} />} label="Phiếu xuất" />
-
-        <NavItem to="/invoices" icon={<Receipt size={18} />} label="Hóa đơn" />
-
-        <div className="sidebar-section-title">BÁO CÁO</div>
-
-        <NavItem
-          to="/reports/stock"
-          icon={<BarChart3 size={18} />}
-          label="Tồn kho"
-        />
-
-        {(isAdmin || isManager) && (
-          <NavItem
-            to="/reports/revenue"
-            icon={<BarChart3 size={18} />}
-            label="Doanh thu"
-          />
-        )}
-
-        {isAdmin && (
-          <>
-            <div className="sidebar-section-title">QUẢN TRỊ</div>
-
-            <NavItem
-              to="/users"
-              icon={<Users size={18} />}
-              label="Người dùng"
-            />
-          </>
-        )}
-      </nav>
-    </aside>
+          <span>Đăng xuất</span>
+        </button>
+      </div>
+    </header>
   );
 }
 
-function NavItem({ to, icon, label }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
-    >
-      {icon}
-      <span>{label}</span>
-    </NavLink>
-  );
+function getPageInfo(pathname) {
+  if (pathname === "/dashboard") {
+    return {
+      title: "Dashboard",
+      subtitle: "Tổng quan hệ thống quản lý kho",
+    };
+  }
+
+  if (pathname === "/products") {
+    return {
+      title: "Sản phẩm",
+      subtitle: "Quản lý sản phẩm trong kho",
+    };
+  }
+
+  if (pathname === "/categories") {
+    return {
+      title: "Danh mục",
+      subtitle: "Quản lý danh mục sản phẩm",
+    };
+  }
+
+  if (pathname === "/receipts") {
+    return {
+      title: "Phiếu nhập",
+      subtitle: "Quản lý phiếu nhập kho",
+    };
+  }
+
+  if (pathname === "/issues") {
+    return {
+      title: "Phiếu xuất",
+      subtitle: "Quản lý phiếu xuất kho",
+    };
+  }
+
+  if (pathname === "/invoices") {
+    return {
+      title: "Hóa đơn",
+      subtitle: "Quản lý hóa đơn",
+    };
+  }
+
+  if (pathname.startsWith("/reports")) {
+    return {
+      title: "Báo cáo",
+      subtitle: "Báo cáo và thống kê kho",
+    };
+  }
+
+  if (pathname === "/users") {
+    return {
+      title: "Người dùng",
+      subtitle: "Quản lý tài khoản người dùng",
+    };
+  }
+
+  return {
+    title: "Quản lý kho",
+    subtitle: "Warehouse Management System",
+  };
 }

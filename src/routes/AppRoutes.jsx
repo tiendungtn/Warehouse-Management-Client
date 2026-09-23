@@ -1,7 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "./ProtectedRoute";
-import RoleRoute from "./RoleRoute";
 
 import MainLayout from "../components/layout/MainLayout";
 
@@ -22,10 +21,6 @@ export default function AppRoutes() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route element={<RoleRoute allowedRoles={["Admin"]} />}>
-              <Route path="/users" element={<UsersPage />} />
-            </Route>
 
             <Route path="*" element={<NotFoundPage />} />
           </Route>
