@@ -155,7 +155,7 @@ export default function ProductForm({
               value={form.productCode}
               onChange={handleChange}
               error={errors.productCode}
-              placeholder="VD: SP001"
+              placeholder=""
               disabled={loading}
             />
 
@@ -165,7 +165,7 @@ export default function ProductForm({
               value={form.productName}
               onChange={handleChange}
               error={errors.productName}
-              placeholder="Nhập tên sản phẩm"
+              placeholder=""
               disabled={loading}
             />
 
@@ -199,7 +199,7 @@ export default function ProductForm({
               value={form.unit}
               onChange={handleChange}
               error={errors.unit}
-              placeholder="VD: Cái, Hộp, Kg"
+              placeholder=""
               disabled={loading}
             />
 
@@ -210,7 +210,7 @@ export default function ProductForm({
               value={form.price}
               onChange={handleChange}
               error={errors.price}
-              placeholder="0"
+              placeholder=""
               min="0"
               step="0.01"
               disabled={loading}
@@ -223,7 +223,7 @@ export default function ProductForm({
               value={form.stockQuantity}
               onChange={handleChange}
               error={errors.stockQuantity}
-              placeholder="0"
+              placeholder=""
               min="0"
               step="1"
               disabled={loading}
