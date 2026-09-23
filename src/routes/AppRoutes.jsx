@@ -8,6 +8,7 @@ import LoginPage from "../pages/auth/LoginPage";
 import DashboardPage from "../pages/dashboard/DashboardPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import ProductsPage from "../pages/products/ProductsPage";
+import CategoriesPage from "../pages/categories/CategoriesPage";
 
 export default function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ export default function AppRoutes() {
 
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>
