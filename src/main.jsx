@@ -6,6 +6,7 @@ import "./styles/globals.css";
 import "./styles/categories.css";
 import "./styles/receipts.css";
 import "./styles/modal.css";
+import "./styles/issues.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

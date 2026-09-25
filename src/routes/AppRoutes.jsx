@@ -10,6 +10,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import ProductsPage from "../pages/products/ProductsPage";
 import CategoriesPage from "../pages/categories/CategoriesPage";
 import ReceiptsPage from "../pages/receipts/ReceiptsPage";
+import IssuesPage from "../pages/issues/IssuesPage";
 
 export default function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/receipts" element={<ReceiptsPage />} />
+            <Route path="/issues" element={<IssuesPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>
