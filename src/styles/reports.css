@@ -1,0 +1,413 @@
+/* REPORTS */
+
+.report-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.report-filter-card {
+    margin-bottom: 20px;
+
+    padding: 16px;
+
+    background: #fff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+.report-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    flex-wrap: wrap;
+}
+
+.report-search {
+    min-width: 280px;
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    color: #6b7280;
+}
+
+.report-search:focus-within {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.report-search input {
+    width: 100%;
+
+    padding: 10px 0;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+}
+
+.report-filter-form select {
+    min-width: 170px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #fff;
+
+    color: #374151;
+
+    font-size: 13px;
+}
+
+.report-filter-form select:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+
+/* STOCK STATS */
+
+.report-stats-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin-bottom: 20px;
+}
+
+.report-stat-card {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    min-width: 0;
+
+    padding: 17px;
+
+    background: #fff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 11px;
+}
+
+.report-stat-icon {
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 9px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+}
+
+.report-stat-card.warning .report-stat-icon {
+    background: #fffbeb;
+
+    color: #d97706;
+}
+
+.report-stat-card.danger .report-stat-icon {
+    background: #fef2f2;
+
+    color: #dc2626;
+}
+
+.report-stat-title {
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+.report-stat-value {
+    margin-top: 3px;
+
+    color: #111827;
+
+    font-size: 19px;
+    font-weight: 700;
+}
+
+
+/* REPORT TABLE HEADER */
+
+.report-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.report-table-header h3 {
+    margin: 0;
+
+    color: #111827;
+
+    font-size: 15px;
+}
+
+.report-table-header span {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* STOCK STATUS */
+
+.report-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px 9px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+.report-status.in {
+    background: #ecfdf5;
+
+    color: #047857;
+}
+
+.report-status.low {
+    background: #fffbeb;
+
+    color: #b45309;
+}
+
+.report-status.out {
+    background: #fef2f2;
+
+    color: #b91c1c;
+}
+
+
+/* REVENUE FILTER */
+
+.revenue-filter-form {
+    display: flex;
+    align-items: flex-end;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+.date-field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+}
+
+.date-field label {
+    color: #374151;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.date-input {
+    min-width: 190px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 0 11px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    color: #64748b;
+
+    background: #fff;
+}
+
+.date-input:focus-within {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.date-input input {
+    width: 100%;
+
+    min-height: 40px;
+
+    border: none;
+    outline: none;
+
+    color: #374151;
+
+    background: transparent;
+
+    font: inherit;
+    font-size: 13px;
+}
+
+
+/* REVENUE SUMMARY */
+
+.revenue-summary-card {
+    display: flex;
+    align-items: center;
+
+    gap: 16px;
+
+    margin-bottom: 20px;
+
+    padding: 22px;
+
+    background: #fff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+.revenue-summary-icon {
+    width: 50px;
+    height: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 11px;
+
+    background: #ecfdf5;
+
+    color: #059669;
+}
+
+.revenue-summary-label {
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.revenue-summary-value {
+    margin-top: 3px;
+
+    color: #111827;
+
+    font-size: 28px;
+    font-weight: 750;
+}
+
+.revenue-summary-period {
+    margin-top: 4px;
+
+    color: #9ca3af;
+
+    font-size: 12px;
+}
+
+.revenue-value {
+    font-weight: 700;
+
+    color: #047857;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+    .report-stats-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .report-stats-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .report-search {
+        min-width: 100%;
+    }
+
+    .report-filter-form select {
+        flex: 1;
+    }
+
+    .revenue-filter-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .date-field,
+    .date-input {
+        width: 100%;
+    }
+
+    .revenue-filter-form button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 550px) {
+    .report-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-header-actions {
+        width: 100%;
+    }
+
+    .report-header-actions button {
+        flex: 1;
+    }
+
+    .revenue-summary-value {
+        font-size: 23px;
+    }
+}
