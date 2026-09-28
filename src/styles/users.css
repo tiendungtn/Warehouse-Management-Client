@@ -1,0 +1,273 @@
+/* USERS PAGE */
+
+.users-page {
+    min-width: 0;
+}
+
+.users-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    padding: 16px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.users-search {
+    width: 100%;
+    max-width: 500px;
+
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    color: #6b7280;
+}
+
+.users-search:focus-within {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.users-search input {
+    width: 100%;
+
+    padding: 10px 0;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #1f2937;
+}
+
+.users-count {
+    color: #6b7280;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+}
+
+.users-table th,
+.users-table td {
+    vertical-align: middle;
+}
+
+/* ROLE BADGE */
+
+.user-role-badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.user-role-badge.admin {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.user-role-badge.manager {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.user-role-badge.staff {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+/* MODAL */
+
+.user-modal-backdrop {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.user-modal {
+    width: 100%;
+    max-width: 500px;
+
+    background: #fff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+
+    box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.20);
+
+    overflow: hidden;
+}
+
+.user-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding: 20px 22px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.user-modal-header h3 {
+    margin: 0;
+
+    font-size: 18px;
+}
+
+.user-modal-header p {
+    margin: 5px 0 0;
+
+    color: #6b7280;
+
+    font-size: 12px;
+}
+
+.user-modal-close {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+
+    background: #fff;
+    color: #6b7280;
+}
+
+.user-modal-close:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+/* FORM */
+
+.user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+
+    padding: 22px;
+}
+
+.user-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.user-form .form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.user-form .form-group input,
+.user-form .form-group select {
+    width: 100%;
+
+    padding: 10px 11px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #fff;
+    color: #1f2937;
+
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+
+.user-form .form-group input:focus,
+.user-form .form-group select:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.user-form .form-group input:disabled {
+    background: #f9fafb;
+
+    color: #6b7280;
+
+    cursor: not-allowed;
+}
+
+.user-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+
+    margin-top: 5px;
+
+    padding-top: 18px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+    .users-toolbar {
+        align-items: stretch;
+
+        flex-direction: column;
+    }
+
+    .users-search {
+        max-width: none;
+    }
+
+    .users-count {
+        text-align: right;
+    }
+
+    .user-modal-backdrop {
+        align-items: flex-start;
+
+        overflow-y: auto;
+
+        padding: 15px;
+    }
+
+    .user-modal {
+        margin: auto 0;
+    }
+}
