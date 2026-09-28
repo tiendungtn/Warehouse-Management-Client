@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, RefreshCw, Search, Tags } from "lucide-react";
-
+import "../../styles/categories.css";
 import {
   getCategoriesApi,
   createCategoryApi,

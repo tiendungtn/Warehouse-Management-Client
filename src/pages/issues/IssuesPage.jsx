@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Plus, RefreshCw, Search } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
+import "../../styles/issues.css";
 
 import {
   getIssuesApi,

@@ -11,6 +11,7 @@ import ProductsPage from "../pages/products/ProductsPage";
 import CategoriesPage from "../pages/categories/CategoriesPage";
 import ReceiptsPage from "../pages/receipts/ReceiptsPage";
 import IssuesPage from "../pages/issues/IssuesPage";
+import InvoicesPage from "../pages/invoices/InvoicesPage";
 
 export default function AppRoutes() {
   return (
@@ -29,6 +30,7 @@ export default function AppRoutes() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/receipts" element={<ReceiptsPage />} />
             <Route path="/issues" element={<IssuesPage />} />
+            <Route path="/invoices" element={<InvoicesPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>

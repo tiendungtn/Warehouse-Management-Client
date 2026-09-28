@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
+import "../../styles/receipts.css";
 
 import {
   getReceiptsApi,
