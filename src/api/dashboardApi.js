@@ -5,3 +5,8 @@ export const getDashboardApi = async () => {
 
   return response.data;
 };
+export const getDashboardAnalyticsApi = async () => {
+  const response = await axiosClient.get("/dashboard/analytics");
+
+  return response.data;
+};
