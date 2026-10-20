@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import "../../styles/reports.css";
+import "../../styles/pagination.css";
 
 import { getStockReportApi, exportStockReportApi } from "../../api/reportApi";
 
@@ -16,6 +17,8 @@ import { getCategoriesApi } from "../../api/categoryApi";
 
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
+import Pagination from "../../components/common/Pagination";
+import { useSearchParams } from "react-router-dom";
 
 export default function StockReportPage() {
   const [report, setReport] = useState(null);
@@ -26,7 +29,15 @@ export default function StockReportPage() {
 
   const [categoryId, setCategoryId] = useState("");
 
-  const [stockFilter, setStockFilter] = useState("");
+  const [searchParams] = useSearchParams();
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageSize, setPageSize] = useState(10);
+
+  const [stockFilter, setStockFilter] = useState(
+    () => searchParams.get("stockFilter") || "",
+  );
 
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +66,13 @@ export default function StockReportPage() {
     }
   };
 
+  const stockProducts = report?.products || [];
+
+  const paginatedStockProducts = stockProducts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const loadCategories = async () => {
     try {
       const data = await getCategoriesApi();
@@ -69,6 +87,10 @@ export default function StockReportPage() {
     loadCategories();
     loadReport();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, categoryId, stockFilter]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -267,7 +289,14 @@ export default function StockReportPage() {
               </div>
             </div>
 
-            <StockTable products={report.products || []} />
+            <StockTable products={paginatedStockProducts} />
+            <Pagination
+              totalItems={stockProducts.length}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
           </div>
         </>
       )}

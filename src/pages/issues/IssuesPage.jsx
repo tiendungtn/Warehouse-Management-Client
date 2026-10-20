@@ -3,6 +3,7 @@ import { Plus, RefreshCw, Search } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/issues.css";
+import "../../styles/pagination.css";
 
 import {
   getIssuesApi,
@@ -15,6 +16,7 @@ import { getProductsApi } from "../../api/productApi";
 
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
+import Pagination from "../../components/common/Pagination";
 
 import IssueTable from "../../components/issues/IssueTable";
 import IssueForm from "../../components/issues/IssueForm";
@@ -35,6 +37,10 @@ export default function IssuesPage() {
   const [search, setSearch] = useState("");
 
   const [showForm, setShowForm] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageSize, setPageSize] = useState(10);
 
   const [selectedIssue, setSelectedIssue] = useState(null);
 
@@ -67,6 +73,10 @@ export default function IssuesPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   const filteredIssues = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
@@ -81,6 +91,11 @@ export default function IssuesPage() {
         .includes(keyword),
     );
   }, [issues, search]);
+
+  const paginatedIssues = filteredIssues.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   const handleCreate = async (data) => {
     try {
@@ -187,10 +202,17 @@ export default function IssuesPage() {
         </div>
 
         <IssueTable
-          issues={filteredIssues}
+          issues={paginatedIssues}
           canApprove={isAdminOrManager}
           onView={handleView}
           onApprove={setIssueToApprove}
+        />
+        <Pagination
+          totalItems={filteredIssues.length}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
         />
       </div>
 

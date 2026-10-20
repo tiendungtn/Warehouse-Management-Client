@@ -17,6 +17,8 @@ import ProductForm from "../../components/products/ProductForm";
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import Pagination from "../../components/common/Pagination";
+import "../../styles/pagination.css";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -42,6 +44,10 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState(null);
 
   const [deletingProduct, setDeletingProduct] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageSize, setPageSize] = useState(10);
 
   const canCreateOrEdit = user?.role === "Admin" || user?.role === "Manager";
 
@@ -83,6 +89,15 @@ export default function ProductsPage() {
   useEffect(() => {
     loadCategories();
   }, [canCreateOrEdit]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -230,12 +245,22 @@ export default function ProductsPage() {
         ) : loading ? (
           <Loading text="Đang tải sản phẩm..." />
         ) : (
-          <ProductTable
-            products={products}
-            userRole={user?.role}
-            onEdit={handleOpenEdit}
-            onDelete={handleDeleteRequest}
-          />
+          <>
+            <ProductTable
+              products={paginatedProducts}
+              userRole={user?.role}
+              onEdit={handleOpenEdit}
+              onDelete={handleDeleteRequest}
+            />
+
+            <Pagination
+              totalItems={products.length}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
+          </>
         )}
       </div>
 

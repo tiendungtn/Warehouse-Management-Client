@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RefreshCw, Search } from "lucide-react";
 
 import "../../styles/invoices.css";
+import "../../styles/pagination.css";
 
 import {
   getInvoicesApi,
@@ -11,6 +12,7 @@ import {
 
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
+import Pagination from "../../components/common/Pagination";
 
 import InvoiceTable from "../../components/invoices/InvoiceTable";
 import InvoiceDetailModal from "../../components/invoices/InvoiceDetailModal";
@@ -23,6 +25,10 @@ export default function InvoicesPage() {
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageSize, setPageSize] = useState(10);
 
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
@@ -49,6 +55,10 @@ export default function InvoicesPage() {
     loadInvoices();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   const filteredInvoices = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
@@ -63,6 +73,11 @@ export default function InvoicesPage() {
         .includes(keyword);
     });
   }, [invoices, search]);
+
+  const paginatedInvoices = filteredInvoices.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   const handleView = async (id) => {
     try {
@@ -156,10 +171,17 @@ export default function InvoicesPage() {
         </div>
 
         <InvoiceTable
-          invoices={filteredInvoices}
+          invoices={paginatedInvoices}
           onView={handleView}
           onDownload={handleDownload}
           downloadingId={downloadingId}
+        />
+        <Pagination
+          totalItems={filteredInvoices.length}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
         />
       </div>
 

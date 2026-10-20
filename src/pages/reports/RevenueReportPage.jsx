@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { CalendarDays, RefreshCw, TrendingUp } from "lucide-react";
 
 import "../../styles/reports.css";
+import "../../styles/pagination.css";
 
 import { getRevenueReportApi } from "../../api/reportApi";
 
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
+import Pagination from "../../components/common/Pagination";
 
 export default function RevenueReportPage() {
   const [report, setReport] = useState(null);
@@ -18,6 +20,10 @@ export default function RevenueReportPage() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageSize, setPageSize] = useState(10);
 
   const loadReport = async () => {
     try {
@@ -39,9 +45,20 @@ export default function RevenueReportPage() {
     }
   };
 
+  const revenueInvoices = report?.invoices || [];
+
+  const paginatedRevenueInvoices = revenueInvoices.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   useEffect(() => {
     loadReport();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [fromDate, toDate]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -164,7 +181,14 @@ export default function RevenueReportPage() {
               </div>
             </div>
 
-            <RevenueTable invoices={report.invoices || []} />
+            <RevenueTable invoices={paginatedRevenueInvoices} />
+            <Pagination
+              totalItems={revenueInvoices.length}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
           </div>
         </>
       )}

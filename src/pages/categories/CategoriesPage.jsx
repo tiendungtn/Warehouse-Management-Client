@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, RefreshCw, Search, Tags } from "lucide-react";
 import "../../styles/categories.css";
+import "../../styles/pagination.css";
 import {
   getCategoriesApi,
   createCategoryApi,
@@ -14,6 +15,7 @@ import CategoryForm from "../../components/categories/CategoryForm";
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import Pagination from "../../components/common/Pagination";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -35,6 +37,9 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState(null);
 
   const [deletingCategory, setDeletingCategory] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const canManage = user?.role === "Admin" || user?.role === "Manager";
 
@@ -135,6 +140,13 @@ export default function CategoriesPage() {
       category.description?.toLowerCase().includes(keyword)
     );
   });
+  const paginatedCategories = filteredCategories.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   if (loading) {
     return <Loading text="Đang tải danh mục..." />;
@@ -203,11 +215,18 @@ export default function CategoriesPage() {
         </div>
 
         <CategoryTable
-          categories={filteredCategories}
+          categories={paginatedCategories}
           canEdit={canManage}
           canDelete={canManage}
           onEdit={handleOpenEdit}
           onDelete={handleDeleteRequest}
+        />
+        <Pagination
+          totalItems={filteredCategories.length}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
         />
       </div>
 

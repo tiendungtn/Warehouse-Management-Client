@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import "../../styles/receipts.css";
+import "../../styles/pagination.css";
 
 import {
   getReceiptsApi,
@@ -16,6 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import Pagination from "../../components/common/Pagination";
 
 import ReceiptTable from "../../components/receipts/ReceiptTable";
 import ReceiptForm from "../../components/receipts/ReceiptForm";
@@ -39,6 +41,10 @@ export default function ReceiptsPage() {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   const [receiptToApprove, setReceiptToApprove] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageSize, setPageSize] = useState(10);
 
   const [submitting, setSubmitting] = useState(false);
   const [approving, setApproving] = useState(false);
@@ -83,6 +89,10 @@ export default function ReceiptsPage() {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   const filteredReceipts = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
@@ -98,6 +108,11 @@ export default function ReceiptsPage() {
       );
     });
   }, [receipts, search]);
+
+  const paginatedReceipts = filteredReceipts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   const handleCreate = async (payload) => {
     setSubmitting(true);
@@ -178,12 +193,21 @@ export default function ReceiptsPage() {
       {loading ? (
         <Loading />
       ) : (
-        <ReceiptTable
-          receipts={filteredReceipts}
-          canApprove={canApprove}
-          onView={handleView}
-          onApprove={setReceiptToApprove}
-        />
+        <>
+          <ReceiptTable
+            receipts={paginatedReceipts}
+            canApprove={canApprove}
+            onView={handleView}
+            onApprove={setReceiptToApprove}
+          />
+          <Pagination
+            totalItems={filteredReceipts.length}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        </>
       )}
 
       <ReceiptForm
