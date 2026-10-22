@@ -54,3 +54,11 @@ export const getRevenueReportApi = async ({
 
   return response.data;
 };
+
+export const searchStockReportApi = async (filters = {}) => {
+  const response = await axiosClient.get("/reports/stock/search", {
+    params: filters,
+  });
+
+  return response.data;
+};

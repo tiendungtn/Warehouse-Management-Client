@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import useSearchFilters from "../../hooks/useSearchFilters";
 import { Plus, Search } from "lucide-react";
 import "../../styles/receipts.css";
 import "../../styles/pagination.css";
@@ -8,6 +10,7 @@ import {
   getReceiptApi,
   createReceiptApi,
   approveReceiptApi,
+  searchReceiptsApi,
 } from "../../api/receiptApi";
 
 import { getProductsApi } from "../../api/productApi";
@@ -34,7 +37,15 @@ export default function ReceiptsPage() {
 
   const [error, setError] = useState("");
 
-  const [search, setSearch] = useState("");
+  const { filters, updateFilters, resetFilters } = useSearchFilters();
+  const [searchParams] = useSearchParams();
+
+  const [search, setSearch] = useState(filters.search || "");
+
+  const [totalItems, setTotalItems] = useState(0);
+
+  const currentPage = Math.max(1, Number(filters.page) || 1);
+  const pageSize = Math.max(1, Number(filters.pageSize) || 10);
 
   const [showForm, setShowForm] = useState(false);
 
@@ -42,23 +53,26 @@ export default function ReceiptsPage() {
 
   const [receiptToApprove, setReceiptToApprove] = useState(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const [pageSize, setPageSize] = useState(10);
-
   const [submitting, setSubmitting] = useState(false);
   const [approving, setApproving] = useState(false);
 
   const canApprove = user?.role === "Admin" || user?.role === "Manager";
 
-  const loadReceipts = async () => {
+  const loadReceipts = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
-      const data = await getReceiptsApi();
+      const params = Object.fromEntries(searchParams.entries());
 
-      setReceipts(data || []);
+      const result = await searchReceiptsApi({
+        ...params,
+        page: Number(params.page) || 1,
+        pageSize: Number(params.pageSize) || 10,
+      });
+
+      setReceipts(result.items ?? []);
+      setTotalItems(result.totalItems ?? 0);
     } catch (err) {
       setError(
         err?.response?.data?.message || "Không thể tải danh sách phiếu nhập.",
@@ -66,7 +80,7 @@ export default function ReceiptsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   const loadProducts = async () => {
     try {
@@ -85,34 +99,38 @@ export default function ReceiptsPage() {
   };
 
   useEffect(() => {
-    loadReceipts();
     loadProducts();
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
+    loadReceipts();
+  }, [loadReceipts]);
 
-  const filteredReceipts = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
+  useEffect(() => {
+    setSearch(filters.search || "");
+  }, [filters.search]);
 
-    if (!keyword) {
-      return receipts;
-    }
+  const handleSearch = (event) => {
+    event.preventDefault();
 
-    return receipts.filter((receipt) => {
-      return (
-        receipt.receiptCode?.toLowerCase().includes(keyword) ||
-        receipt.supplierName?.toLowerCase().includes(keyword) ||
-        receipt.creatorName?.toLowerCase().includes(keyword)
-      );
+    updateFilters({
+      search: search.trim(),
+      page: 1,
     });
-  }, [receipts, search]);
+  };
 
-  const paginatedReceipts = filteredReceipts.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+  const handlePageChange = (page) => {
+    updateFilters({ page }, { resetPage: false });
+  };
+
+  const handlePageSizeChange = (size) => {
+    updateFilters({ pageSize: size, page: 1 }, { resetPage: false });
+  };
+
+  const handleResetSearch = () => {
+    setSearch("");
+    resetFilters();
+  };
 
   const handleCreate = async (payload) => {
     setSubmitting(true);
@@ -166,7 +184,7 @@ export default function ReceiptsPage() {
   return (
     <div className="page-container">
       <div className="page-toolbar">
-        <div className="search-box">
+        <form className="search-box" onSubmit={handleSearch}>
           <Search size={18} />
 
           <input
@@ -175,7 +193,20 @@ export default function ReceiptsPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-        </div>
+
+          <button type="submit" className="secondary-button">
+            Tìm kiếm
+          </button>
+
+          <button
+            type="button"
+            className="icon-button"
+            title="Đặt lại"
+            onClick={handleResetSearch}
+          >
+            Đặt lại
+          </button>
+        </form>
 
         <button
           type="button"
@@ -195,17 +226,18 @@ export default function ReceiptsPage() {
       ) : (
         <>
           <ReceiptTable
-            receipts={paginatedReceipts}
+            receipts={receipts}
             canApprove={canApprove}
             onView={handleView}
             onApprove={setReceiptToApprove}
           />
+
           <Pagination
-            totalItems={filteredReceipts.length}
+            totalItems={totalItems}
             currentPage={currentPage}
             pageSize={pageSize}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={setPageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         </>
       )}

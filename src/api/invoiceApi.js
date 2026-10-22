@@ -19,3 +19,11 @@ export const downloadInvoicePdfApi = async (id) => {
 
   return response;
 };
+
+export const searchInvoicesApi = async (filters = {}) => {
+  const response = await axiosClient.get("/invoices/search", {
+    params: filters,
+  });
+
+  return response.data;
+};

@@ -19,3 +19,11 @@ export const approveReceiptApi = async (id) => {
   const response = await axiosClient.post(`/receipts/${id}/approve`);
   return response.data;
 };
+
+export const searchReceiptsApi = async (filters = {}) => {
+  const response = await axiosClient.get("/receipts/search", {
+    params: filters,
+  });
+
+  return response.data;
+};

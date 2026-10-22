@@ -22,3 +22,11 @@ export const approveIssueApi = async (id, customerName) => {
 
   return response.data;
 };
+
+export const searchIssuesApi = async (filters = {}) => {
+  const response = await axiosClient.get("/issues/search", {
+    params: filters,
+  });
+
+  return response.data;
+};
