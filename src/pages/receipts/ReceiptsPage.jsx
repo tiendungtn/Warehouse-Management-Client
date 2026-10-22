@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import {
+  Plus,
+  Search,
+  SlidersHorizontal,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+
 import useSearchFilters from "../../hooks/useSearchFilters";
-import { Plus, Search } from "lucide-react";
 import "../../styles/receipts.css";
 import "../../styles/pagination.css";
 
 import {
-  getReceiptsApi,
   getReceiptApi,
   createReceiptApi,
   approveReceiptApi,
@@ -14,7 +21,6 @@ import {
 } from "../../api/receiptApi";
 
 import { getProductsApi } from "../../api/productApi";
-
 import { useAuth } from "../../context/AuthContext";
 
 import Loading from "../../components/common/Loading";
@@ -26,37 +32,54 @@ import ReceiptTable from "../../components/receipts/ReceiptTable";
 import ReceiptForm from "../../components/receipts/ReceiptForm";
 import ReceiptDetail from "../../components/receipts/ReceiptDetail";
 
+const DEFAULT_FILTERS = {
+  search: "",
+  status: "",
+  fromDate: "",
+  toDate: "",
+  minAmount: "",
+  maxAmount: "",
+  sortBy: "date",
+  sortOrder: "desc",
+};
+
 export default function ReceiptsPage() {
   const { user } = useAuth();
-
-  const [receipts, setReceipts] = useState([]);
-  const [products, setProducts] = useState([]);
-
-  const [loading, setLoading] = useState(true);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-
-  const [error, setError] = useState("");
-
   const { filters, updateFilters, resetFilters } = useSearchFilters();
   const [searchParams] = useSearchParams();
 
-  const [search, setSearch] = useState(filters.search || "");
-
+  const [receipts, setReceipts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
 
-  const currentPage = Math.max(1, Number(filters.page) || 1);
-  const pageSize = Math.max(1, Number(filters.pageSize) || 10);
+  const [loading, setLoading] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [error, setError] = useState("");
+
+  const [draft, setDraft] = useState({
+    ...DEFAULT_FILTERS,
+    ...filters,
+  });
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [showForm, setShowForm] = useState(false);
-
   const [selectedReceipt, setSelectedReceipt] = useState(null);
-
   const [receiptToApprove, setReceiptToApprove] = useState(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [approving, setApproving] = useState(false);
 
   const canApprove = user?.role === "Admin" || user?.role === "Manager";
+
+  const currentPage = Math.max(1, Number(filters.page) || 1);
+  const pageSize = Math.max(1, Number(filters.pageSize) || 10);
+
+  useEffect(() => {
+    setDraft({
+      ...DEFAULT_FILTERS,
+      ...filters,
+    });
+  }, [filters]);
 
   const loadReceipts = useCallback(async () => {
     try {
@@ -82,12 +105,10 @@ export default function ReceiptsPage() {
     }
   }, [searchParams]);
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       setLoadingProducts(true);
-
       const data = await getProductsApi();
-
       setProducts(data || []);
     } catch (err) {
       setError(
@@ -96,27 +117,67 @@ export default function ReceiptsPage() {
     } finally {
       setLoadingProducts(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [loadProducts]);
 
   useEffect(() => {
     loadReceipts();
   }, [loadReceipts]);
 
-  useEffect(() => {
-    setSearch(filters.search || "");
-  }, [filters.search]);
+  const setField = (name, value) => {
+    setDraft((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
 
   const handleSearch = (event) => {
     event.preventDefault();
 
+    if (draft.fromDate && draft.toDate && draft.fromDate > draft.toDate) {
+      setError("Ngày bắt đầu không được sau ngày kết thúc.");
+      return;
+    }
+
+    if (
+      draft.minAmount !== "" &&
+      draft.maxAmount !== "" &&
+      Number(draft.minAmount) > Number(draft.maxAmount)
+    ) {
+      setError("Tổng tiền tối thiểu không được lớn hơn tổng tiền tối đa.");
+      return;
+    }
+
+    if (
+      (draft.minAmount !== "" && Number(draft.minAmount) < 0) ||
+      (draft.maxAmount !== "" && Number(draft.maxAmount) < 0)
+    ) {
+      setError("Tổng tiền không được âm.");
+      return;
+    }
+
+    setError("");
+
     updateFilters({
-      search: search.trim(),
+      search: draft.search.trim(),
+      status: draft.status,
+      fromDate: draft.fromDate,
+      toDate: draft.toDate,
+      minAmount: draft.minAmount,
+      maxAmount: draft.maxAmount,
+      sortBy: draft.sortBy,
+      sortOrder: draft.sortOrder,
       page: 1,
     });
+  };
+
+  const handleReset = () => {
+    setDraft({ ...DEFAULT_FILTERS });
+    setError("");
+    resetFilters();
   };
 
   const handlePageChange = (page) => {
@@ -127,20 +188,17 @@ export default function ReceiptsPage() {
     updateFilters({ pageSize: size, page: 1 }, { resetPage: false });
   };
 
-  const handleResetSearch = () => {
-    setSearch("");
-    resetFilters();
-  };
-
   const handleCreate = async (payload) => {
-    setSubmitting(true);
-
     try {
-      await createReceiptApi(payload);
+      setSubmitting(true);
+      setError("");
 
+      await createReceiptApi(payload);
       setShowForm(false);
 
       await loadReceipts();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Không thể tạo phiếu nhập.");
     } finally {
       setSubmitting(false);
     }
@@ -149,9 +207,7 @@ export default function ReceiptsPage() {
   const handleView = async (id) => {
     try {
       setError("");
-
       const data = await getReceiptApi(id);
-
       setSelectedReceipt(data);
     } catch (err) {
       setError(
@@ -161,16 +217,13 @@ export default function ReceiptsPage() {
   };
 
   const handleApprove = async () => {
-    if (!receiptToApprove) {
-      return;
-    }
+    if (!receiptToApprove) return;
 
     try {
       setApproving(true);
       setError("");
 
       await approveReceiptApi(receiptToApprove.id);
-
       setReceiptToApprove(null);
 
       await loadReceipts();
@@ -184,29 +237,10 @@ export default function ReceiptsPage() {
   return (
     <div className="page-container">
       <div className="page-toolbar">
-        <form className="search-box" onSubmit={handleSearch}>
-          <Search size={18} />
-
-          <input
-            type="text"
-            placeholder="Tìm mã phiếu, nhà cung cấp, người lập..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-
-          <button type="submit" className="secondary-button">
-            Tìm kiếm
-          </button>
-
-          <button
-            type="button"
-            className="icon-button"
-            title="Đặt lại"
-            onClick={handleResetSearch}
-          >
-            Đặt lại
-          </button>
-        </form>
+        <div>
+          <h2>Phiếu nhập</h2>
+          <p>Quản lý phiếu nhập kho</p>
+        </div>
 
         <button
           type="button"
@@ -220,6 +254,163 @@ export default function ReceiptsPage() {
       </div>
 
       {error && <ErrorMessage message={error} onRetry={loadReceipts} />}
+
+      <section className="receipt-search-panel">
+        <form onSubmit={handleSearch}>
+          <div className="receipt-search-main">
+            <div className="receipt-keyword">
+              <Search size={18} />
+              <input
+                type="search"
+                value={draft.search}
+                onChange={(event) => setField("search", event.target.value)}
+                placeholder="Tìm mã phiếu, nhà cung cấp, người lập..."
+                aria-label="Từ khóa tìm phiếu nhập"
+              />
+            </div>
+
+            <button type="submit" className="primary-button">
+              <Search size={16} />
+              Tìm kiếm
+            </button>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setShowAdvanced((value) => !value)}
+              aria-expanded={showAdvanced}
+            >
+              <SlidersHorizontal size={16} />
+              Bộ lọc
+              {showAdvanced ? (
+                <ChevronUp size={16} />
+              ) : (
+                <ChevronDown size={16} />
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleReset}
+            >
+              <RotateCcw size={16} />
+              Đặt lại
+            </button>
+          </div>
+
+          {showAdvanced && (
+            <div className="receipt-advanced-filters">
+              <div className="receipt-filter-field">
+                <label htmlFor="receipt-status">Trạng thái</label>
+                <select
+                  id="receipt-status"
+                  value={draft.status}
+                  onChange={(event) => setField("status", event.target.value)}
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="Pending">Chờ duyệt</option>
+                  <option value="Approved">Đã duyệt</option>
+                </select>
+              </div>
+
+              <div className="receipt-filter-field">
+                <label htmlFor="receipt-from-date">Từ ngày</label>
+                <input
+                  id="receipt-from-date"
+                  type="date"
+                  value={draft.fromDate}
+                  onChange={(event) => setField("fromDate", event.target.value)}
+                />
+              </div>
+
+              <div className="receipt-filter-field">
+                <label htmlFor="receipt-to-date">Đến ngày</label>
+                <input
+                  id="receipt-to-date"
+                  type="date"
+                  value={draft.toDate}
+                  onChange={(event) => setField("toDate", event.target.value)}
+                />
+              </div>
+
+              <div className="receipt-filter-field">
+                <label htmlFor="receipt-min-amount">
+                  Tổng tiền tối thiểu (₫)
+                </label>
+                <input
+                  id="receipt-min-amount"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  value={draft.minAmount}
+                  onChange={(event) =>
+                    setField("minAmount", event.target.value)
+                  }
+                  placeholder="Không giới hạn"
+                />
+              </div>
+
+              <div className="receipt-filter-field">
+                <label htmlFor="receipt-max-amount">Tổng tiền tối đa (₫)</label>
+                <input
+                  id="receipt-max-amount"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  value={draft.maxAmount}
+                  onChange={(event) =>
+                    setField("maxAmount", event.target.value)
+                  }
+                  placeholder="Không giới hạn"
+                />
+              </div>
+
+              <div className="receipt-filter-field">
+                <label htmlFor="receipt-sort-by">Sắp xếp theo</label>
+                <select
+                  id="receipt-sort-by"
+                  value={draft.sortBy}
+                  onChange={(event) => setField("sortBy", event.target.value)}
+                >
+                  <option value="date">Ngày nhập</option>
+                  <option value="code">Mã phiếu</option>
+                  <option value="supplier">Nhà cung cấp</option>
+                  <option value="amount">Tổng tiền</option>
+                  <option value="status">Trạng thái</option>
+                </select>
+              </div>
+
+              <div className="receipt-filter-field">
+                <label htmlFor="receipt-sort-order">Thứ tự</label>
+                <select
+                  id="receipt-sort-order"
+                  value={draft.sortOrder}
+                  onChange={(event) =>
+                    setField("sortOrder", event.target.value)
+                  }
+                >
+                  <option value="desc">Giảm dần</option>
+                  <option value="asc">Tăng dần</option>
+                </select>
+              </div>
+
+              <div className="receipt-filter-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={handleReset}
+                >
+                  Xóa bộ lọc
+                </button>
+                <button type="submit" className="primary-button">
+                  Áp dụng bộ lọc
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
+      </section>
 
       {loading ? (
         <Loading />
@@ -267,9 +458,7 @@ export default function ReceiptsPage() {
         cancelText="Hủy"
         onConfirm={handleApprove}
         onCancel={() => {
-          if (!approving) {
-            setReceiptToApprove(null);
-          }
+          if (!approving) setReceiptToApprove(null);
         }}
         loading={approving}
       />
