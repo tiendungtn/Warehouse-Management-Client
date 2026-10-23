@@ -8,6 +8,14 @@ export const getProductsApi = async (search = "") => {
   return response.data;
 };
 
+export const searchProductsApi = async (filters = {}) => {
+  const response = await axiosClient.get("/products/search", {
+    params: filters,
+  });
+
+  return response.data;
+};
+
 export const getProductApi = async (id) => {
   const response = await axiosClient.get(`/products/${id}`);
 

@@ -56,8 +56,38 @@ export const getRevenueReportApi = async ({
 };
 
 export const searchStockReportApi = async (filters = {}) => {
+  const params = {};
+
+  const stringKeys = ["search", "stockFilter", "sortBy", "sortOrder"];
+
+  for (const key of stringKeys) {
+    const value = filters[key];
+
+    if (value !== undefined && value !== null && value !== "") {
+      params[key] = value;
+    }
+  }
+
+  const numericKeys = [
+    "categoryId",
+    "minPrice",
+    "maxPrice",
+    "minStock",
+    "maxStock",
+    "page",
+    "pageSize",
+  ];
+
+  for (const key of numericKeys) {
+    const value = filters[key];
+
+    if (value !== undefined && value !== null && value !== "") {
+      params[key] = value;
+    }
+  }
+
   const response = await axiosClient.get("/reports/stock/search", {
-    params: filters,
+    params,
   });
 
   return response.data;

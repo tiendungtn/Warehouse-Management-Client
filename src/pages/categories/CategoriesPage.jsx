@@ -1,17 +1,30 @@
-import { useEffect, useState } from "react";
-import { Plus, RefreshCw, Search, Tags } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  Plus,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+
 import "../../styles/categories.css";
 import "../../styles/pagination.css";
+import "../../styles/category-search.css";
+
 import {
-  getCategoriesApi,
+  searchCategoriesApi,
   createCategoryApi,
   updateCategoryApi,
   deleteCategoryApi,
 } from "../../api/categoryApi";
 
+import useSearchFilters from "../../hooks/useSearchFilters";
+
 import CategoryTable from "../../components/categories/CategoryTable";
 import CategoryForm from "../../components/categories/CategoryForm";
-
 import Loading from "../../components/common/Loading";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
@@ -19,48 +32,128 @@ import Pagination from "../../components/common/Pagination";
 
 import { useAuth } from "../../context/AuthContext";
 
+const DEFAULT_FILTERS = {
+  search: "",
+  hasProducts: "",
+  minProductCount: "",
+  maxProductCount: "",
+  sortBy: "name",
+  sortOrder: "asc",
+};
+
 export default function CategoriesPage() {
   const { user } = useAuth();
+  const { filters, updateFilters, resetFilters } = useSearchFilters();
+  const [searchParams] = useSearchParams();
 
   const [categories, setCategories] = useState([]);
-
-  const [search, setSearch] = useState("");
+  const [totalItems, setTotalItems] = useState(0);
 
   const [loading, setLoading] = useState(true);
-
   const [formLoading, setFormLoading] = useState(false);
-
   const [error, setError] = useState("");
 
+  const [draft, setDraft] = useState({
+    ...DEFAULT_FILTERS,
+    ...filters,
+  });
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const [showForm, setShowForm] = useState(false);
-
   const [editingCategory, setEditingCategory] = useState(null);
-
   const [deletingCategory, setDeletingCategory] = useState(null);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   const canManage = user?.role === "Admin" || user?.role === "Manager";
 
-  const loadCategories = async () => {
+  const currentPage = Math.max(1, Number(filters.page) || 1);
+  const pageSize = Math.max(1, Number(filters.pageSize) || 10);
+
+  useEffect(() => {
+    setDraft({
+      ...DEFAULT_FILTERS,
+      ...filters,
+    });
+  }, [filters]);
+
+  const loadCategories = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
-      const data = await getCategoriesApi();
+      const params = Object.fromEntries(searchParams.entries());
 
-      setCategories(data);
+      const result = await searchCategoriesApi({
+        ...params,
+        page: Number(params.page) || 1,
+        pageSize: Number(params.pageSize) || 10,
+      });
+
+      setCategories(result.items ?? []);
+      setTotalItems(result.totalItems ?? 0);
     } catch (err) {
       setError(getErrorMessage(err, "Không thể tải danh sách danh mục."));
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [loadCategories]);
+
+  const setField = (name, value) => {
+    setDraft((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+
+    if (
+      (draft.minProductCount !== "" && Number(draft.minProductCount) < 0) ||
+      (draft.maxProductCount !== "" && Number(draft.maxProductCount) < 0)
+    ) {
+      setError("Số lượng sản phẩm không được âm.");
+      return;
+    }
+
+    if (
+      draft.minProductCount !== "" &&
+      draft.maxProductCount !== "" &&
+      Number(draft.minProductCount) > Number(draft.maxProductCount)
+    ) {
+      setError("Số lượng sản phẩm tối thiểu không được lớn hơn tối đa.");
+      return;
+    }
+
+    setError("");
+
+    updateFilters({
+      search: draft.search.trim(),
+      hasProducts: draft.hasProducts,
+      minProductCount: draft.minProductCount,
+      maxProductCount: draft.maxProductCount,
+      sortBy: draft.sortBy,
+      sortOrder: draft.sortOrder,
+      page: 1,
+    });
+  };
+
+  const handleReset = () => {
+    setDraft({ ...DEFAULT_FILTERS });
+    setError("");
+    resetFilters();
+  };
+
+  const handlePageChange = (page) => {
+    updateFilters({ page }, { resetPage: false });
+  };
+
+  const handlePageSizeChange = (size) => {
+    updateFilters({ pageSize: size, page: 1 }, { resetPage: false });
+  };
 
   const handleOpenCreate = () => {
     setEditingCategory(null);
@@ -73,9 +166,7 @@ export default function CategoriesPage() {
   };
 
   const handleCloseForm = () => {
-    if (formLoading) {
-      return;
-    }
+    if (formLoading) return;
 
     setShowForm(false);
     setEditingCategory(null);
@@ -103,21 +194,14 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDeleteRequest = (category) => {
-    setDeletingCategory(category);
-  };
-
   const handleDelete = async () => {
-    if (!deletingCategory) {
-      return;
-    }
+    if (!deletingCategory) return;
 
     try {
       setFormLoading(true);
       setError("");
 
       await deleteCategoryApi(deletingCategory.id);
-
       setDeletingCategory(null);
 
       await loadCategories();
@@ -128,37 +212,12 @@ export default function CategoriesPage() {
     }
   };
 
-  const filteredCategories = categories.filter((category) => {
-    const keyword = search.trim().toLowerCase();
-
-    if (!keyword) {
-      return true;
-    }
-
-    return (
-      category.categoryName?.toLowerCase().includes(keyword) ||
-      category.description?.toLowerCase().includes(keyword)
-    );
-  });
-  const paginatedCategories = filteredCategories.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
-
-  if (loading) {
-    return <Loading text="Đang tải danh mục..." />;
-  }
-
   return (
     <div>
       <div className="page-header page-header-row">
         <div>
           <h2>Quản lý danh mục</h2>
-
-          <p>Quản lý các danh mục sản phẩm trong kho.</p>
+          <p>Quản lý danh mục và các sản phẩm liên kết.</p>
         </div>
 
         {canManage && (
@@ -175,59 +234,176 @@ export default function CategoriesPage() {
 
       {error && (
         <div className="page-alert">
-          <ErrorMessage
-            message={error}
-            onRetry={() => {
-              setError("");
-              loadCategories();
-            }}
-          />
+          <ErrorMessage message={error} onRetry={loadCategories} />
         </div>
       )}
 
       <div className="content-card">
-        <div className="toolbar">
-          <div className="search-form">
-            <div className="search-input-wrapper">
+        <form className="category-search-panel" onSubmit={handleSearch}>
+          <div className="category-search-main">
+            <div className="search-input-wrapper category-keyword">
               <Search size={18} />
-
               <input
-                type="text"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Tìm theo tên hoặc mô tả..."
+                type="search"
+                value={draft.search}
+                onChange={(event) => setField("search", event.target.value)}
+                placeholder="Tìm theo tên hoặc mô tả danh mục..."
+                aria-label="Tìm kiếm danh mục"
               />
             </div>
 
+            <button type="submit" className="primary-button">
+              <Search size={16} />
+              Tìm kiếm
+            </button>
+
             <button
               type="button"
-              className="icon-button"
-              title="Đặt lại"
-              onClick={() => setSearch("")}
+              className="secondary-button"
+              onClick={() => setShowAdvanced((previous) => !previous)}
+              aria-expanded={showAdvanced}
             >
-              <RefreshCw size={18} />
+              <SlidersHorizontal size={16} />
+              Bộ lọc
+              {showAdvanced ? (
+                <ChevronUp size={16} />
+              ) : (
+                <ChevronDown size={16} />
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleReset}
+            >
+              <RotateCcw size={16} />
+              Đặt lại
             </button>
           </div>
 
-          <div className="product-count">
-            {filteredCategories.length} danh mục
-          </div>
+          {showAdvanced && (
+            <div className="category-advanced-filters">
+              <div className="category-filter-field">
+                <label htmlFor="category-has-products">Sản phẩm liên kết</label>
+                <select
+                  id="category-has-products"
+                  value={draft.hasProducts}
+                  onChange={(event) =>
+                    setField("hasProducts", event.target.value)
+                  }
+                >
+                  <option value="">Tất cả danh mục</option>
+                  <option value="true">Có sản phẩm</option>
+                  <option value="false">Chưa có sản phẩm</option>
+                </select>
+              </div>
+
+              <div className="category-filter-field">
+                <label htmlFor="category-min-count">Số sản phẩm từ</label>
+                <input
+                  id="category-min-count"
+                  type="number"
+                  min="0"
+                  value={draft.minProductCount}
+                  onChange={(event) =>
+                    setField("minProductCount", event.target.value)
+                  }
+                  placeholder="Không giới hạn"
+                />
+              </div>
+
+              <div className="category-filter-field">
+                <label htmlFor="category-max-count">Số sản phẩm đến</label>
+                <input
+                  id="category-max-count"
+                  type="number"
+                  min="0"
+                  value={draft.maxProductCount}
+                  onChange={(event) =>
+                    setField("maxProductCount", event.target.value)
+                  }
+                  placeholder="Không giới hạn"
+                />
+              </div>
+
+              <div className="category-filter-field">
+                <label htmlFor="category-sort-by">Sắp xếp theo</label>
+                <select
+                  id="category-sort-by"
+                  value={draft.sortBy}
+                  onChange={(event) => setField("sortBy", event.target.value)}
+                >
+                  <option value="name">Tên danh mục</option>
+                  <option value="count">Số lượng sản phẩm</option>
+                </select>
+              </div>
+
+              <div className="category-filter-field">
+                <label htmlFor="category-sort-order">Thứ tự</label>
+                <select
+                  id="category-sort-order"
+                  value={draft.sortOrder}
+                  onChange={(event) =>
+                    setField("sortOrder", event.target.value)
+                  }
+                >
+                  <option value="asc">Tăng dần</option>
+                  <option value="desc">Giảm dần</option>
+                </select>
+              </div>
+
+              <div className="category-filter-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={handleReset}
+                >
+                  Xóa bộ lọc
+                </button>
+                <button type="submit" className="primary-button">
+                  Áp dụng bộ lọc
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
+
+        <div className="toolbar">
+          <div className="product-count">{totalItems} danh mục</div>
+
+          <button
+            type="button"
+            className="icon-button"
+            title="Làm mới danh sách"
+            onClick={loadCategories}
+            disabled={loading}
+          >
+            <RefreshCw size={18} />
+          </button>
         </div>
 
-        <CategoryTable
-          categories={paginatedCategories}
-          canEdit={canManage}
-          canDelete={canManage}
-          onEdit={handleOpenEdit}
-          onDelete={handleDeleteRequest}
-        />
-        <Pagination
-          totalItems={filteredCategories.length}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-        />
+        {loading ? (
+          <Loading text="Đang tải danh mục..." />
+        ) : (
+          <>
+            <CategoryTable
+              categories={categories}
+              canEdit={canManage}
+              canDelete={canManage}
+              onEdit={handleOpenEdit}
+              onDelete={setDeletingCategory}
+            />
+
+            <Pagination
+              totalItems={totalItems}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </>
+        )}
       </div>
 
       {showForm && (
@@ -245,12 +421,8 @@ export default function CategoriesPage() {
           message={
             <>
               Bạn có chắc muốn xóa danh mục{" "}
-              <strong>{deletingCategory.categoryName}</strong>
-              ?
-              <br />
-              <br />
-              Nếu danh mục đang có sản phẩm liên kết, hệ thống sẽ không cho phép
-              xóa.
+              <strong>{deletingCategory.categoryName}</strong>? Nếu danh mục
+              đang có sản phẩm liên kết, hệ thống sẽ không cho phép xóa.
             </>
           }
           confirmText={formLoading ? "Đang xóa..." : "Xóa danh mục"}
@@ -258,9 +430,7 @@ export default function CategoriesPage() {
           loading={formLoading}
           onConfirm={handleDelete}
           onCancel={() => {
-            if (!formLoading) {
-              setDeletingCategory(null);
-            }
+            if (!formLoading) setDeletingCategory(null);
           }}
         />
       )}
@@ -270,9 +440,9 @@ export default function CategoriesPage() {
 
 function getErrorMessage(error, fallback) {
   return (
-    error.response?.data?.message ||
-    error.response?.data?.title ||
-    error.message ||
+    error?.response?.data?.message ||
+    error?.response?.data?.title ||
+    error?.message ||
     fallback
   );
 }

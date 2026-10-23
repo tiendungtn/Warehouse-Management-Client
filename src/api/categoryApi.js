@@ -6,6 +6,13 @@ export const getCategoriesApi = async () => {
   return response.data;
 };
 
+export const searchCategoriesApi = async (filters = {}) => {
+  const response = await axiosClient.get("/categories/search", {
+    params: filters,
+  });
+  return response.data;
+};
+
 export const getCategoryApi = async (id) => {
   const response = await axiosClient.get(`/categories/${id}`);
 

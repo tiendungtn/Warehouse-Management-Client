@@ -1,15 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw, Search } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  Plus,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
+import useSearchFilters from "../../hooks/useSearchFilters";
+
 import "../../styles/issues.css";
 import "../../styles/pagination.css";
 
 import {
-  getIssuesApi,
   getIssueApi,
   createIssueApi,
   approveIssueApi,
+  searchIssuesApi,
 } from "../../api/issueApi";
 
 import { getProductsApi } from "../../api/productApi";
@@ -23,79 +34,141 @@ import IssueForm from "../../components/issues/IssueForm";
 import IssueDetailModal from "../../components/issues/IssueDetailModal";
 import ApproveIssueModal from "../../components/issues/ApproveIssueModal";
 
+const DEFAULT_FILTERS = {
+  search: "",
+  status: "",
+  hasInvoice: "",
+  fromDate: "",
+  toDate: "",
+  sortBy: "date",
+  sortOrder: "desc",
+};
+
 export default function IssuesPage() {
   const { user } = useAuth();
+  const { filters, updateFilters, resetFilters } = useSearchFilters();
+  const [searchParams] = useSearchParams();
 
   const [issues, setIssues] = useState([]);
   const [products, setProducts] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
 
   const [loading, setLoading] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-
   const [error, setError] = useState("");
 
-  const [search, setSearch] = useState("");
+  const [draft, setDraft] = useState({
+    ...DEFAULT_FILTERS,
+    ...filters,
+  });
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [showForm, setShowForm] = useState(false);
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const [pageSize, setPageSize] = useState(10);
-
   const [selectedIssue, setSelectedIssue] = useState(null);
-
   const [issueToApprove, setIssueToApprove] = useState(null);
 
-  const isAdminOrManager = user?.role === "Admin" || user?.role === "Manager";
+  const canApprove = user?.role === "Admin" || user?.role === "Manager";
 
-  const loadData = async () => {
+  const currentPage = Math.max(1, Number(filters.page) || 1);
+  const pageSize = Math.max(1, Number(filters.pageSize) || 10);
+
+  useEffect(() => {
+    setDraft({
+      ...DEFAULT_FILTERS,
+      ...filters,
+    });
+  }, [filters]);
+
+  const loadIssues = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
-      const [issuesData, productsData] = await Promise.all([
-        getIssuesApi(),
-        getProductsApi(),
-      ]);
+      const params = Object.fromEntries(searchParams.entries());
 
-      setIssues(issuesData || []);
-      setProducts(productsData || []);
+      const result = await searchIssuesApi({
+        ...params,
+        page: Number(params.page) || 1,
+        pageSize: Number(params.pageSize) || 10,
+      });
+
+      setIssues(result.items ?? []);
+      setTotalItems(result.totalItems ?? 0);
     } catch (err) {
       setError(
-        err.response?.data?.message || "Không thể tải dữ liệu phiếu xuất.",
+        err?.response?.data?.message || "Không thể tải danh sách phiếu xuất.",
       );
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
-  useEffect(() => {
-    loadData();
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoadingProducts(true);
+
+      const result = await getProductsApi();
+      setProducts(result ?? []);
+    } catch (err) {
+      setError(
+        err?.response?.data?.message || "Không thể tải danh sách sản phẩm.",
+      );
+    } finally {
+      setLoadingProducts(false);
+    }
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
+    loadIssues();
+  }, [loadIssues]);
 
-  const filteredIssues = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
-    if (!keyword) {
-      return issues;
+  const setField = (name, value) => {
+    setDraft((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+
+    if (draft.fromDate && draft.toDate && draft.fromDate > draft.toDate) {
+      setError("Ngày bắt đầu không được sau ngày kết thúc.");
+      return;
     }
 
-    return issues.filter((issue) =>
-      [issue.issueCode, issue.reason, issue.creatorName, issue.status]
-        .join(" ")
-        .toLowerCase()
-        .includes(keyword),
-    );
-  }, [issues, search]);
+    setError("");
 
-  const paginatedIssues = filteredIssues.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+    updateFilters({
+      search: draft.search.trim(),
+      status: draft.status,
+      hasInvoice: draft.hasInvoice,
+      fromDate: draft.fromDate,
+      toDate: draft.toDate,
+      sortBy: draft.sortBy,
+      sortOrder: draft.sortOrder,
+      page: 1,
+    });
+  };
+
+  const handleReset = () => {
+    setDraft({ ...DEFAULT_FILTERS });
+    setError("");
+    resetFilters();
+  };
+
+  const handlePageChange = (page) => {
+    updateFilters({ page }, { resetPage: false });
+  };
+
+  const handlePageSizeChange = (size) => {
+    updateFilters({ pageSize: size, page: 1 }, { resetPage: false });
+  };
 
   const handleCreate = async (data) => {
     try {
@@ -103,12 +176,11 @@ export default function IssuesPage() {
       setError("");
 
       await createIssueApi(data);
-
       setShowForm(false);
 
-      await loadData();
+      await loadIssues();
     } catch (err) {
-      setError(err.response?.data?.message || "Không thể tạo phiếu xuất.");
+      setError(err?.response?.data?.message || "Không thể tạo phiếu xuất.");
     } finally {
       setSubmitting(false);
     }
@@ -119,46 +191,37 @@ export default function IssuesPage() {
       setError("");
 
       const data = await getIssueApi(id);
-
       setSelectedIssue(data);
     } catch (err) {
       setError(
-        err.response?.data?.message || "Không thể tải chi tiết phiếu xuất.",
+        err?.response?.data?.message || "Không thể tải chi tiết phiếu xuất.",
       );
     }
   };
 
   const handleApprove = async (customerName) => {
-    if (!issueToApprove) {
-      return;
-    }
+    if (!issueToApprove) return;
 
     try {
       setSubmitting(true);
       setError("");
 
       await approveIssueApi(issueToApprove.id, customerName);
-
       setIssueToApprove(null);
 
-      await loadData();
+      await loadIssues();
     } catch (err) {
-      setError(err.response?.data?.message || "Không thể duyệt phiếu xuất.");
+      setError(err?.response?.data?.message || "Không thể duyệt phiếu xuất.");
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (loading) {
-    return <Loading />;
-  }
 
   return (
     <div className="page-container">
       <div className="page-toolbar">
         <div>
           <h2>Phiếu xuất kho</h2>
-
           <p>Quản lý các phiếu xuất và quá trình duyệt xuất kho</p>
         </div>
 
@@ -166,7 +229,8 @@ export default function IssuesPage() {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={loadData}
+            onClick={loadIssues}
+            disabled={loading}
           >
             <RefreshCw size={17} />
             Làm mới
@@ -176,6 +240,7 @@ export default function IssuesPage() {
             type="button"
             className="btn btn-primary"
             onClick={() => setShowForm(true)}
+            disabled={loadingProducts}
           >
             <Plus size={17} />
             Tạo phiếu xuất
@@ -186,34 +251,169 @@ export default function IssuesPage() {
       {error && <ErrorMessage message={error} onClose={() => setError("")} />}
 
       <div className="content-card">
-        <div className="table-toolbar">
-          <div className="search-box">
-            <Search size={18} />
+        <form className="issue-search-panel" onSubmit={handleSearch}>
+          <div className="issue-search-main">
+            <div className="search-box issue-keyword">
+              <Search size={18} />
 
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm mã phiếu, lý do, người lập..."
-            />
+              <input
+                type="search"
+                value={draft.search}
+                onChange={(event) => setField("search", event.target.value)}
+                placeholder="Tìm mã phiếu, lý do, người lập..."
+                aria-label="Tìm kiếm phiếu xuất"
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary">
+              <Search size={16} />
+              Tìm kiếm
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowAdvanced((previous) => !previous)}
+              aria-expanded={showAdvanced}
+            >
+              <SlidersHorizontal size={16} />
+              Bộ lọc
+              {showAdvanced ? (
+                <ChevronUp size={16} />
+              ) : (
+                <ChevronDown size={16} />
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleReset}
+            >
+              <RotateCcw size={16} />
+              Đặt lại
+            </button>
           </div>
 
-          <div className="table-count">{filteredIssues.length} phiếu</div>
+          {showAdvanced && (
+            <div className="issue-advanced-filters">
+              <div className="issue-filter-field">
+                <label htmlFor="issue-status">Trạng thái</label>
+                <select
+                  id="issue-status"
+                  value={draft.status}
+                  onChange={(event) => setField("status", event.target.value)}
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="Pending">Chờ duyệt</option>
+                  <option value="Approved">Đã duyệt</option>
+                </select>
+              </div>
+
+              <div className="issue-filter-field">
+                <label htmlFor="issue-invoice">Hóa đơn</label>
+                <select
+                  id="issue-invoice"
+                  value={draft.hasInvoice}
+                  onChange={(event) =>
+                    setField("hasInvoice", event.target.value)
+                  }
+                >
+                  <option value="">Tất cả</option>
+                  <option value="true">Đã có hóa đơn</option>
+                  <option value="false">Chưa có hóa đơn</option>
+                </select>
+              </div>
+
+              <div className="issue-filter-field">
+                <label htmlFor="issue-from-date">Từ ngày</label>
+                <input
+                  id="issue-from-date"
+                  type="date"
+                  value={draft.fromDate}
+                  onChange={(event) => setField("fromDate", event.target.value)}
+                />
+              </div>
+
+              <div className="issue-filter-field">
+                <label htmlFor="issue-to-date">Đến ngày</label>
+                <input
+                  id="issue-to-date"
+                  type="date"
+                  value={draft.toDate}
+                  onChange={(event) => setField("toDate", event.target.value)}
+                />
+              </div>
+
+              <div className="issue-filter-field">
+                <label htmlFor="issue-sort-by">Sắp xếp theo</label>
+                <select
+                  id="issue-sort-by"
+                  value={draft.sortBy}
+                  onChange={(event) => setField("sortBy", event.target.value)}
+                >
+                  <option value="date">Ngày xuất</option>
+                  <option value="code">Mã phiếu</option>
+                  <option value="status">Trạng thái</option>
+                  <option value="reason">Lý do xuất</option>
+                </select>
+              </div>
+
+              <div className="issue-filter-field">
+                <label htmlFor="issue-sort-order">Thứ tự</label>
+                <select
+                  id="issue-sort-order"
+                  value={draft.sortOrder}
+                  onChange={(event) =>
+                    setField("sortOrder", event.target.value)
+                  }
+                >
+                  <option value="desc">Giảm dần</option>
+                  <option value="asc">Tăng dần</option>
+                </select>
+              </div>
+
+              <div className="issue-filter-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleReset}
+                >
+                  Xóa bộ lọc
+                </button>
+
+                <button type="submit" className="btn btn-primary">
+                  Áp dụng bộ lọc
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
+
+        <div className="table-toolbar">
+          <div className="table-count">{totalItems} phiếu xuất</div>
         </div>
 
-        <IssueTable
-          issues={paginatedIssues}
-          canApprove={isAdminOrManager}
-          onView={handleView}
-          onApprove={setIssueToApprove}
-        />
-        <Pagination
-          totalItems={filteredIssues.length}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-        />
+        {loading ? (
+          <Loading />
+        ) : (
+          <>
+            <IssueTable
+              issues={issues}
+              canApprove={canApprove}
+              onView={handleView}
+              onApprove={setIssueToApprove}
+            />
+
+            <Pagination
+              totalItems={totalItems}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </>
+        )}
       </div>
 
       {showForm && (
