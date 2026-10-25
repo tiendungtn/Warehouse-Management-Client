@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { Edit, Plus, Search, Trash2, UserRound, X } from "lucide-react";
+import {
+  Edit,
+  Plus,
+  Search,
+  Trash2,
+  UserRound,
+  X,
+  ShieldCheck,
+} from "lucide-react";
+
+import UserPermissionsModal from "./UserPermissionsModal";
 
 import {
   createUserApi,
@@ -42,6 +52,8 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false);
 
   const [deletingId, setDeletingId] = useState(null);
+
+  const [permissionUser, setPermissionUser] = useState(null);
 
   const loadUsers = async () => {
     try {
@@ -289,6 +301,15 @@ export default function UsersPage() {
                       <div className="table-actions">
                         <button
                           type="button"
+                          className="icon-button"
+                          title="Phân quyền"
+                          aria-label={`Phân quyền cho ${user.username}`}
+                          onClick={() => setPermissionUser(user)}
+                        >
+                          <ShieldCheck size={16} />
+                        </button>
+                        <button
+                          type="button"
                           className="icon-button edit"
                           title="Chỉnh sửa"
                           onClick={() => openEditModal(user)}
@@ -445,6 +466,13 @@ export default function UsersPage() {
             </form>
           </div>
         </div>
+      )}
+      {permissionUser && (
+        <UserPermissionsModal
+          user={permissionUser}
+          onClose={() => setPermissionUser(null)}
+          onSaved={loadUsers}
+        />
       )}
     </div>
   );

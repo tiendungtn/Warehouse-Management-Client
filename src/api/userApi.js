@@ -21,3 +21,16 @@ export const updateUserApi = async (id, data) => {
 export const deleteUserApi = async (id) => {
   await axiosClient.delete(`/users/${id}`);
 };
+
+// effectivePermissions và rolePermissions.
+export const getUserPermissionsApi = async (id) => {
+  const response = await axiosClient.get(`/users/${id}/permissions`);
+  return response.data;
+};
+
+// Lưu chế độ phân quyền và danh sách override.
+export const updateUserPermissionsApi = async (id, data) => {
+  const response = await axiosClient.put(`/users/${id}/permissions`, data);
+
+  return response.data;
+};

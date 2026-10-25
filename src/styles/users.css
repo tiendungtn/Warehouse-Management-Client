@@ -271,3 +271,503 @@
         margin: auto 0;
     }
 }
+
+/* USER PERMISSIONS MODAL */
+
+.permission-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(4px);
+}
+
+.permission-modal {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    max-width: 900px;
+    max-height: min(90vh, 900px);
+
+    overflow: hidden;
+
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+}
+
+.permission-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.permission-heading-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 44px;
+    height: 44px;
+
+    color: #2563eb;
+    background: #eff6ff;
+    border-radius: 12px;
+}
+
+.permission-heading-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.permission-heading-text h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 19px;
+    font-weight: 750;
+    letter-spacing: -0.3px;
+}
+
+.permission-heading-text p {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.permission-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 36px;
+    height: 36px;
+
+    color: #6b7280;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.permission-icon-button:hover {
+    color: #111827;
+    background: #f9fafb;
+}
+
+.permission-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 22px 24px;
+}
+
+.permission-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 220px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.permission-spinner {
+    animation: permission-spin 0.8s linear infinite;
+}
+
+@keyframes permission-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.permission-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    margin-bottom: 18px;
+    padding: 12px 14px;
+
+    border: 1px solid;
+    border-radius: 10px;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.permission-alert svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.permission-alert-error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.permission-alert-warning {
+    color: #92400e;
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.permission-section+.permission-section {
+    margin-top: 26px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.permission-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 15px;
+}
+
+.permission-section-heading h3 {
+    margin: 0;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.permission-section-heading p {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.permission-mode-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.permission-mode-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+
+    padding: 16px;
+
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    cursor: pointer;
+
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.permission-mode-card:hover {
+    border-color: #93c5fd;
+}
+
+.permission-mode-card.selected {
+    background: #eff6ff;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 1px #60a5fa inset;
+}
+
+.permission-mode-card input {
+    margin: 3px 0 0;
+    accent-color: #2563eb;
+}
+
+.permission-mode-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.permission-mode-copy strong {
+    color: #111827;
+    font-size: 13px;
+}
+
+.permission-mode-copy span {
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.permission-add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+
+    padding: 9px 11px;
+
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.permission-add-button:hover:not(:disabled) {
+    background: #dbeafe;
+}
+
+.permission-add-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.permission-empty-overrides {
+    padding: 18px;
+
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    border-radius: 10px;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.permission-override-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.permission-override-card {
+    padding: 16px;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+.permission-override-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.permission-override-number {
+    color: #374151;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.permission-remove-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 6px 8px;
+
+    color: #b91c1c;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.permission-remove-button:hover:not(:disabled) {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.permission-override-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 12px;
+}
+
+.permission-override-fields label,
+.permission-reason-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.permission-override-fields label>span,
+.permission-reason-field>span {
+    color: #374151;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.permission-override-fields select,
+.permission-reason-field input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+
+    padding: 10px 11px;
+
+    color: #1f2937;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+
+    font: inherit;
+    font-size: 12px;
+}
+
+.permission-override-fields select:focus,
+.permission-reason-field input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.permission-reason-field {
+    margin-top: 14px;
+}
+
+.permission-reason-field small {
+    color: #9ca3af;
+    font-size: 11px;
+    text-align: right;
+}
+
+.permission-effective-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.permission-effective-group {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.permission-effective-group h4 {
+    margin: 0 0 11px;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.permission-effective-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.permission-effective-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    padding: 6px 8px;
+
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 7px;
+
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.permission-effective-chip svg {
+    flex-shrink: 0;
+}
+
+.permission-no-access {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.permission-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+
+    padding: 16px 24px;
+
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+}
+
+.permission-modal-footer .primary-button,
+.permission-modal-footer .secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.permission-modal-footer button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .permission-modal-backdrop {
+        align-items: flex-start;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .permission-modal {
+        max-height: none;
+        margin: auto 0;
+        border-radius: 12px;
+    }
+
+    .permission-modal-header {
+        padding: 16px;
+    }
+
+    .permission-modal-body {
+        padding: 16px;
+        overflow: visible;
+    }
+
+    .permission-modal-footer {
+        padding: 14px 16px;
+    }
+
+    .permission-mode-options,
+    .permission-effective-groups {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .permission-override-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .permission-override-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .permission-heading-text h2 {
+        font-size: 16px;
+    }
+}
