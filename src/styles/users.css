@@ -771,3 +771,67 @@
         font-size: 16px;
     }
 }
+
+.create-permissions {
+    padding: 16px;
+    border: 1px solid #dbeafe;
+    background: #f8fbff;
+    border-radius: 12px;
+}
+
+.create-permissions .form-group {
+    margin-bottom: 12px;
+}
+
+.create-permissions .form-group small {
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.create-permission-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 12px 0;
+    color: #374151;
+    font-size: 13px;
+}
+
+.create-permission-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 9px;
+}
+
+.create-permission-item label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.create-permission-item input,
+.create-permission-item select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    background: #fff;
+    font: inherit;
+    font-size: 12px;
+}
+
+.create-permissions .permission-add-button,
+.create-permissions .permission-remove-button {
+    align-self: flex-start;
+}

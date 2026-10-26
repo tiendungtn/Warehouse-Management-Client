@@ -152,7 +152,7 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
   const [effectivePermissions, setEffectivePermissions] = useState([]);
   const [apiSupportsEditor, setApiSupportsEditor] = useState(false);
 
-  const rolePermissions = ROLE_BASELINES[user.role] ?? [];
+  const [rolePermissions, setRolePermissions] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -164,29 +164,14 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
         setNotice("");
 
         const data = await getUserPermissionsApi(user.id);
-
         if (!active) return;
 
-        // Hợp đồng API đầy đủ mà giao diện cần:
-        // {
-        //   permissionMode: "RoleBased" | "Custom",
-        //   permissionOverrides: [
-        //     { permissionCode, effect, reason }
-        //   ],
-        //   effectivePermissions: ["products.view"],
-        //   rolePermissions: ["products.view"]
-        // }
-        //
-        // API hiện tại trả về string[] nên không thể khôi phục
-        // chính xác mode và override đang được lưu trong database.
-        if (Array.isArray(data)) {
-          setEffectivePermissions(data);
-          setApiSupportsEditor(false);
-          setNotice(
-            "API hiện chỉ trả về quyền hiệu lực. Chưa thể chỉnh sửa an toàn vì chưa nhận được chế độ và các quyền override đang lưu.",
+        if (!data || !Array.isArray(data.rolePermissions)) {
+          throw new Error(
+            "API chưa trả về cấu hình phân quyền đúng định dạng.",
           );
-          return;
         }
+        setRolePermissions(data.rolePermissions);
 
         setPermissionMode(
           data.permissionMode === "Custom" ? "Custom" : "RoleBased",
@@ -208,10 +193,8 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
             : [],
         );
 
-        setApiSupportsEditor(
-          Array.isArray(data.permissionOverrides) &&
-            Array.isArray(data.effectivePermissions),
-        );
+        setApiSupportsEditor(true);
+        setNotice("");
       } catch (err) {
         if (!active) return;
 

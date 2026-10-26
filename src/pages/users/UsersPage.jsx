@@ -25,11 +25,58 @@ import ErrorMessage from "../../components/common/ErrorMessage";
 
 import "../../styles/users.css";
 
+const PERMISSION_OPTIONS = [
+  ["products.view", "Xem sản phẩm"],
+  ["products.create", "Tạo sản phẩm"],
+  ["products.edit", "Sửa sản phẩm"],
+  ["products.delete", "Xóa sản phẩm"],
+  ["categories.view", "Xem danh mục"],
+  ["categories.create", "Tạo danh mục"],
+  ["categories.edit", "Sửa danh mục"],
+  ["categories.delete", "Xóa danh mục"],
+  ["receipts.view", "Xem phiếu nhập"],
+  ["receipts.create", "Tạo phiếu nhập"],
+  ["receipts.edit", "Sửa phiếu nhập"],
+  ["receipts.delete", "Xóa phiếu nhập"],
+  ["receipts.approve", "Duyệt phiếu nhập"],
+  ["issues.view", "Xem phiếu xuất"],
+  ["issues.create", "Tạo phiếu xuất"],
+  ["issues.edit", "Sửa phiếu xuất"],
+  ["issues.delete", "Xóa phiếu xuất"],
+  ["issues.approve", "Duyệt phiếu xuất"],
+  ["invoices.view", "Xem hóa đơn"],
+  ["invoices.create", "Tạo hóa đơn"],
+  ["invoices.edit", "Sửa hóa đơn"],
+  ["invoices.delete", "Xóa hóa đơn"],
+  ["invoices.download", "Tải hóa đơn"],
+  ["reports.stock.view", "Xem báo cáo tồn kho"],
+  ["reports.stock.export", "Xuất báo cáo tồn kho"],
+  ["reports.revenue.view", "Xem báo cáo doanh thu"],
+  ["users.view", "Xem người dùng"],
+  ["users.create", "Tạo người dùng"],
+  ["users.edit", "Sửa người dùng"],
+  ["users.lock", "Khóa người dùng"],
+  ["users.permissions.manage", "Quản lý phân quyền"],
+  ["roles.view", "Xem vai trò"],
+  ["roles.create", "Tạo vai trò"],
+  ["roles.edit", "Sửa vai trò"],
+  ["roles.delete", "Xóa vai trò"],
+  ["audit.view", "Xem nhật ký kiểm toán"],
+];
+
+const emptyPermissionOverride = () => ({
+  permissionCode: "",
+  effect: "Grant",
+  reason: "",
+});
+
 const initialForm = {
   username: "",
   password: "",
   fullname: "",
   role: "Staff",
+  permissionMode: "RoleBased",
+  permissionOverrides: [],
 };
 
 export default function UsersPage() {
@@ -140,11 +187,20 @@ export default function UsersPage() {
           newPassword: form.password || null,
         });
       } else {
-        await createUserApi({
+        const createdUser = await createUserApi({
           username: form.username,
           password: form.password,
           fullname: form.fullname,
           role: form.role,
+          permissionMode: form.permissionMode,
+          permissionOverrides:
+            form.permissionMode === "Custom"
+              ? form.permissionOverrides.map((item) => ({
+                  permissionCode: item.permissionCode,
+                  effect: item.effect,
+                  reason: item.reason.trim() || null,
+                }))
+              : [],
         });
       }
 
@@ -421,7 +477,157 @@ export default function UsersPage() {
                   <option value="Admin">Admin</option>
                 </select>
               </div>
+              {!editingUser && (
+                <div className="create-permissions">
+                  <div className="form-group">
+                    <label htmlFor="permissionMode">Chế độ phân quyền</label>
+                    <select
+                      id="permissionMode"
+                      value={form.permissionMode}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          permissionMode: event.target.value,
+                          permissionOverrides:
+                            event.target.value === "Custom"
+                              ? prev.permissionOverrides
+                              : [],
+                        }))
+                      }
+                    >
+                      <option value="RoleBased">Theo vai trò</option>
+                      <option value="Custom">Tùy chỉnh quyền</option>
+                    </select>
+                    <small>
+                      Theo vai trò dùng quyền cơ sở của {form.role}. Tùy chỉnh
+                      cho phép thêm hoặc từ chối tối đa 2 quyền.
+                    </small>
+                  </div>
 
+                  {form.permissionMode === "Custom" && (
+                    <div className="create-permission-overrides">
+                      <div className="create-permission-heading">
+                        <strong>Quyền ghi đè cá nhân</strong>
+                        <span>{form.permissionOverrides.length}/2</span>
+                      </div>
+
+                      {form.permissionOverrides.map((item, index) => (
+                        <div className="create-permission-item" key={index}>
+                          <label>
+                            Quyền
+                            <select
+                              required
+                              value={item.permissionCode}
+                              onChange={(event) => {
+                                const next = [...form.permissionOverrides];
+                                next[index] = {
+                                  ...next[index],
+                                  permissionCode: event.target.value,
+                                };
+                                setForm((prev) => ({
+                                  ...prev,
+                                  permissionOverrides: next,
+                                }));
+                              }}
+                            >
+                              <option value="">Chọn quyền</option>
+                              {PERMISSION_OPTIONS.map(([code, label]) => (
+                                <option
+                                  key={code}
+                                  value={code}
+                                  disabled={form.permissionOverrides.some(
+                                    (other, otherIndex) =>
+                                      otherIndex !== index &&
+                                      other.permissionCode === code,
+                                  )}
+                                >
+                                  {label} ({code})
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label>
+                            Hiệu ứng
+                            <select
+                              value={item.effect}
+                              onChange={(event) => {
+                                const next = [...form.permissionOverrides];
+                                next[index] = {
+                                  ...next[index],
+                                  effect: event.target.value,
+                                };
+                                setForm((prev) => ({
+                                  ...prev,
+                                  permissionOverrides: next,
+                                }));
+                              }}
+                            >
+                              <option value="Grant">Grant — Cấp quyền</option>
+                              <option value="Deny">Deny — Từ chối quyền</option>
+                            </select>
+                          </label>
+
+                          <label>
+                            Lý do (không bắt buộc)
+                            <input
+                              maxLength={300}
+                              value={item.reason}
+                              placeholder="Lý do ghi đè quyền"
+                              onChange={(event) => {
+                                const next = [...form.permissionOverrides];
+                                next[index] = {
+                                  ...next[index],
+                                  reason: event.target.value,
+                                };
+                                setForm((prev) => ({
+                                  ...prev,
+                                  permissionOverrides: next,
+                                }));
+                              }}
+                            />
+                          </label>
+
+                          <button
+                            type="button"
+                            className="permission-remove-button"
+                            onClick={() =>
+                              setForm((prev) => ({
+                                ...prev,
+                                permissionOverrides:
+                                  prev.permissionOverrides.filter(
+                                    (_, itemIndex) => itemIndex !== index,
+                                  ),
+                              }))
+                            }
+                          >
+                            <Trash2 size={14} />
+                            Xóa override
+                          </button>
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        className="permission-add-button"
+                        disabled={form.permissionOverrides.length >= 2}
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            permissionOverrides: [
+                              ...prev.permissionOverrides,
+                              emptyPermissionOverride(),
+                            ],
+                          }))
+                        }
+                      >
+                        <Plus size={15} />
+                        Thêm override
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="form-group">
                 <label htmlFor="password">
                   {editingUser ? "Mật khẩu mới" : "Mật khẩu"}
