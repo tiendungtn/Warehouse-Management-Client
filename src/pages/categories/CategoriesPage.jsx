@@ -147,6 +147,20 @@ export default function CategoriesPage() {
     resetFilters();
   };
 
+  const handleSort = (field) => {
+    const currentSortBy = String(filters.sortBy || "name");
+    const currentSortOrder = String(filters.sortOrder || "asc");
+
+    const nextSortOrder =
+      currentSortBy === field && currentSortOrder === "asc" ? "desc" : "asc";
+
+    updateFilters({
+      sortBy: field,
+      sortOrder: nextSortOrder,
+      page: 1,
+    });
+  };
+
   const handlePageChange = (page) => {
     updateFilters({ page }, { resetPage: false });
   };
@@ -393,6 +407,9 @@ export default function CategoriesPage() {
               canDelete={canManage}
               onEdit={handleOpenEdit}
               onDelete={setDeletingCategory}
+              sortBy={String(filters.sortBy || "name")}
+              sortOrder={String(filters.sortOrder || "asc")}
+              onSort={handleSort}
             />
 
             <Pagination

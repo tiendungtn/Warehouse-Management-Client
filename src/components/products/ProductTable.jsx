@@ -1,17 +1,60 @@
-import { Edit, Trash2, PackageOpen } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  PackageOpen,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 
-export default function ProductTable({ products, userRole, onEdit, onDelete }) {
+export default function ProductTable({
+  products,
+  userRole,
+  onEdit,
+  onDelete,
+  sortBy = "name",
+  sortOrder = "asc",
+  onSort,
+}) {
   const canEdit = userRole === "Admin" || userRole === "Manager";
-
   const canDelete = userRole === "Admin";
 
-  if (products.length === 0) {
+  const renderSortHeader = (label, key) => {
+    const active = sortBy === key;
+
+    return (
+      <th
+        key={key}
+        aria-sort={
+          active ? (sortOrder === "asc" ? "ascending" : "descending") : "none"
+        }
+      >
+        <button
+          type="button"
+          className={`table-sort-button${active ? " active" : ""}`}
+          onClick={() => onSort?.(key)}
+          title={`Sắp xếp theo ${label}`}
+        >
+          <span>{label}</span>
+          {active ? (
+            sortOrder === "asc" ? (
+              <ArrowUp size={14} />
+            ) : (
+              <ArrowDown size={14} />
+            )
+          ) : (
+            <ArrowUpDown size={14} />
+          )}
+        </button>
+      </th>
+    );
+  };
+
+  if (!products.length) {
     return (
       <div className="empty-state">
         <PackageOpen size={42} />
-
         <h3>Không có sản phẩm</h3>
-
         <p>Chưa tìm thấy sản phẩm phù hợp.</p>
       </div>
     );
@@ -22,14 +65,13 @@ export default function ProductTable({ products, userRole, onEdit, onDelete }) {
       <table className="data-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Mã sản phẩm</th>
+            {renderSortHeader("ID", "id")}
+            {renderSortHeader("Mã sản phẩm", "code")}
             <th>Tên sản phẩm</th>
             <th>Danh mục</th>
             <th>Đơn vị</th>
-            <th>Đơn giá</th>
-            <th>Tồn kho</th>
-
+            {renderSortHeader("Đơn giá", "price")}
+            {renderSortHeader("Tồn kho", "stock")}
             {(canEdit || canDelete) && (
               <th className="actions-column">Thao tác</th>
             )}
@@ -40,19 +82,13 @@ export default function ProductTable({ products, userRole, onEdit, onDelete }) {
           {products.map((product) => (
             <tr key={product.id}>
               <td>{product.id}</td>
-
               <td>
                 <strong>{product.productCode}</strong>
               </td>
-
               <td>{product.productName}</td>
-
               <td>{product.categoryName}</td>
-
               <td>{product.unit}</td>
-
               <td>{formatCurrency(product.price)}</td>
-
               <td>
                 <StockBadge quantity={product.stockQuantity} />
               </td>
@@ -70,7 +106,6 @@ export default function ProductTable({ products, userRole, onEdit, onDelete }) {
                         <Edit size={17} />
                       </button>
                     )}
-
                     {canDelete && (
                       <button
                         type="button"
@@ -96,11 +131,9 @@ function StockBadge({ quantity }) {
   if (quantity === 0) {
     return <span className="stock-badge out">Hết hàng</span>;
   }
-
   if (quantity <= 10) {
     return <span className="stock-badge low">{quantity} — Sắp hết</span>;
   }
-
   return <span className="stock-badge normal">{quantity}</span>;
 }
 

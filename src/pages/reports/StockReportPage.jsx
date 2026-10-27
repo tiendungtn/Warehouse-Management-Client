@@ -7,6 +7,8 @@ import {
   AlertTriangle,
   XCircle,
   ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
@@ -54,7 +56,9 @@ function readFilters(params) {
     filters.page = "1";
   }
 
-  if (!["code", "name", "price", "stock", "value"].includes(filters.sortBy)) {
+  if (
+    !["id", "code", "name", "price", "stock", "value"].includes(filters.sortBy)
+  ) {
     filters.sortBy = "stock";
   }
 
@@ -470,7 +474,12 @@ export default function StockReportPage() {
             {loading ? (
               <Loading text="Đang cập nhật dữ liệu..." />
             ) : (
-              <StockTable products={products} />
+              <StockTable
+                products={products}
+                sortBy={filters.sortBy}
+                sortOrder={filters.sortOrder}
+                onSort={handleSort}
+              />
             )}
 
             <Pagination
@@ -503,7 +512,38 @@ function ReportStat({ icon, title, value, danger, warning }) {
   );
 }
 
-function StockTable({ products }) {
+function StockTable({ products, sortBy = "stock", sortOrder = "asc", onSort }) {
+  const renderSortHeader = (label, key) => {
+    const active = sortBy === key;
+
+    return (
+      <th
+        key={key}
+        aria-sort={
+          active ? (sortOrder === "asc" ? "ascending" : "descending") : "none"
+        }
+      >
+        <button
+          type="button"
+          className={`table-sort-button${active ? " active" : ""}`}
+          onClick={() => onSort?.(key)}
+          title={`Sắp xếp theo ${label}`}
+        >
+          <span>{label}</span>
+          {active ? (
+            sortOrder === "asc" ? (
+              <ArrowUp size={14} />
+            ) : (
+              <ArrowDown size={14} />
+            )
+          ) : (
+            <ArrowUpDown size={14} />
+          )}
+        </button>
+      </th>
+    );
+  };
+
   if (!products.length) {
     return (
       <div className="empty-state">
@@ -519,16 +559,17 @@ function StockTable({ products }) {
       <table className="data-table">
         <thead>
           <tr>
-            <th>Mã sản phẩm</th>
+            {renderSortHeader("Mã sản phẩm", "code")}
             <th>Tên sản phẩm</th>
             <th>Danh mục</th>
             <th>ĐVT</th>
-            <th>Đơn giá</th>
-            <th>Tồn kho</th>
-            <th>Giá trị tồn</th>
+            {renderSortHeader("Đơn giá", "price")}
+            {renderSortHeader("Tồn kho", "stock")}
+            {renderSortHeader("Giá trị tồn", "value")}
             <th>Trạng thái</th>
           </tr>
         </thead>
+
         <tbody>
           {products.map((product) => (
             <tr key={product.productId}>

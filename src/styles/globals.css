@@ -890,3 +890,44 @@ button {
 
     font-size: 13px;
 }
+
+
+/* Tiêu đề cột có thể sắp xếp */
+.data-table .table-sort-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 7px;
+    width: 100%;
+    min-height: 28px;
+    padding: 3px 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.data-table .table-sort-button svg {
+    flex: 0 0 auto;
+    opacity: 0.55;
+}
+
+.data-table .table-sort-button:hover,
+.data-table .table-sort-button.active {
+    color: var(--primary-color, #2563eb);
+}
+
+.data-table .table-sort-button:hover svg,
+.data-table .table-sort-button.active svg {
+    opacity: 1;
+}
+
+.data-table .table-sort-button:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
