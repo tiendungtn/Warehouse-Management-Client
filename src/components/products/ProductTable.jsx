@@ -1,6 +1,6 @@
-import { Edit, Trash2, PackageOpen } from "lucide-react";
+import { Edit, Trash2, PackageOpen, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
-export default function ProductTable({ products, userRole, onEdit, onDelete }) {
+export default function ProductTable({ products, userRole, onEdit, onDelete, sortBy, sortOrder, onSort }) {
   const canEdit = userRole === "Admin" || userRole === "Manager";
 
   const canDelete = userRole === "Admin";
@@ -22,13 +22,13 @@ export default function ProductTable({ products, userRole, onEdit, onDelete }) {
       <table className="data-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Mã sản phẩm</th>
+            <SortableHeader label="ID" field="id" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
+            <SortableHeader label="Mã sản phẩm" field="code" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
             <th>Tên sản phẩm</th>
             <th>Danh mục</th>
             <th>Đơn vị</th>
-            <th>Đơn giá</th>
-            <th>Tồn kho</th>
+            <SortableHeader label="Đơn giá" field="price" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
+            <SortableHeader label="Tồn kho" field="stock" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
 
             {(canEdit || canDelete) && (
               <th className="actions-column">Thao tác</th>
@@ -110,4 +110,17 @@ function formatCurrency(value) {
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(value ?? 0);
+}
+
+function SortableHeader({ label, field, sortBy, sortOrder, onSort }) {
+  const active = sortBy === field;
+  const Icon = active ? (sortOrder === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+  return (
+    <th aria-sort={active ? (sortOrder === "asc" ? "ascending" : "descending") : "none"}>
+      <button type="button" className="table-sort-button" onClick={() => onSort(field)}
+        title={`Sắp xếp theo ${label}`} aria-label={`Sắp xếp theo ${label}`}>
+        <span>{label}</span><Icon size={14} aria-hidden="true" />
+      </button>
+    </th>
+  );
 }
