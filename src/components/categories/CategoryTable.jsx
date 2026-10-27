@@ -1,4 +1,4 @@
-import { Edit, Trash2, Tags } from "lucide-react";
+import { Edit, Trash2, Tags, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 export default function CategoryTable({
   categories,
@@ -24,10 +24,10 @@ export default function CategoryTable({
       <table className="data-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>TÊN DANH MỤC</th>
+            <SortableHeader label="ID" field="id" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
+            <SortableHeader label="TÊN DANH MỤC" field="name" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
             <th>MÔ TẢ</th>
-            <th>SỐ SẢN PHẨM</th>
+            <SortableHeader label="SỐ SẢN PHẨM" field="count" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
 
             {(canEdit || canDelete) && (
               <th className="actions-column">THAO TÁC</th>
@@ -88,5 +88,18 @@ export default function CategoryTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SortableHeader({ label, field, sortBy, sortOrder, onSort }) {
+  const active = sortBy === field;
+  const Icon = active ? (sortOrder === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+  return (
+    <th aria-sort={active ? (sortOrder === "asc" ? "ascending" : "descending") : "none"}>
+      <button type="button" className="table-sort-button" onClick={() => onSort(field)}
+        title={`Sắp xếp theo ${label}`} aria-label={`Sắp xếp theo ${label}`}>
+        <span>{label}</span><Icon size={14} aria-hidden="true" />
+      </button>
+    </th>
   );
 }
