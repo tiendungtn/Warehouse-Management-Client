@@ -835,3 +835,106 @@
 .create-permissions .permission-remove-button {
     align-self: flex-start;
 }
+
+
+/* Fix responsive cho modal phân quyền */
+.permission-modal>form {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.permission-modal-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.permission-modal-footer {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+}
+
+.permission-override-card,
+.permission-effective-group,
+.permission-mode-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .permission-modal-backdrop {
+        align-items: flex-start;
+        justify-content: center;
+        padding: 8px;
+        overflow-y: auto;
+    }
+
+    .permission-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100dvh - 16px);
+        margin: 0;
+    }
+
+    .permission-modal>form {
+        min-height: 0;
+    }
+
+    .permission-modal-body {
+        padding: 14px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .permission-modal-header {
+        gap: 9px;
+        padding: 14px;
+    }
+
+    .permission-heading-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .permission-heading-text h2 {
+        font-size: 16px;
+    }
+
+    .permission-heading-text p {
+        overflow-wrap: anywhere;
+    }
+
+    .permission-mode-options,
+    .permission-effective-groups,
+    .permission-override-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .permission-section-heading,
+    .permission-override-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .permission-add-button {
+        width: 100%;
+    }
+
+    .permission-modal-footer {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 12px 14px;
+    }
+
+    .permission-modal-footer button {
+        width: 100%;
+        min-width: 0;
+    }
+}
