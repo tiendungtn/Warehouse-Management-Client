@@ -345,9 +345,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <p className="dashboard-chart-note">
-            Nhấn vào biểu đồ hoặc nút Chi tiết để mở báo cáo doanh thu.
-          </p>
+          <p className="dashboard-chart-note"></p>
         </div>
 
         <div className="dashboard-panel">
@@ -427,9 +425,7 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <p className="dashboard-chart-note">
-            Nhấn vào một nhóm để mở báo cáo tồn kho.
-          </p>
+          <p className="dashboard-chart-note"></p>
         </div>
       </section>
 
@@ -521,10 +517,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <p className="dashboard-chart-note">
-          Nhấn vào biểu đồ để mở danh sách phiếu nhập. Bạn cũng có thể mở nhanh
-          từng phân hệ bên dưới.
-        </p>
+        <p className="dashboard-chart-note"></p>
       </section>
     </div>
   );

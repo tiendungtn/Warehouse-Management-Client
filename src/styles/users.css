@@ -938,3 +938,117 @@
         min-width: 0;
     }
 }
+
+
+/* Responsive: modal thêm/sửa người dùng */
+.user-modal-backdrop {
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.user-modal {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+}
+
+.user-modal-header {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.user-form {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.create-permissions,
+.create-permission-item,
+.user-form .form-group {
+    min-width: 0;
+}
+
+.create-permission-item input,
+.create-permission-item select,
+.user-form .form-group input,
+.user-form .form-group select {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.user-form-actions {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+    .user-modal-backdrop {
+        align-items: flex-start;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .user-modal {
+        width: 100%;
+        max-width: 500px;
+        max-height: calc(100vh - 20px);
+        max-height: calc(100dvh - 20px);
+        margin: 0;
+        border-radius: 12px;
+    }
+
+    .user-modal-header {
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .user-form {
+        gap: 14px;
+        padding: 16px;
+    }
+
+    .create-permissions {
+        padding: 12px;
+    }
+
+    .create-permission-item {
+        padding: 10px;
+    }
+
+    .user-form-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding-top: 14px;
+    }
+
+    .user-form-actions button {
+        width: 100%;
+        min-width: 0;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 380px) {
+    .user-modal-header {
+        padding: 12px;
+    }
+
+    .user-form {
+        padding: 12px;
+    }
+
+    .user-form-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

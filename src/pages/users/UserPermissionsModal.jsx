@@ -585,7 +585,7 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
                                 )
                               }
                               maxLength={300}
-                              placeholder="Ví dụ: Hỗ trợ xử lý nghiệp vụ tạm thời"
+                              placeholder=""
                               disabled={!apiSupportsEditor}
                             />
                             <small>{item.reason.length}/300 ký tự</small>
