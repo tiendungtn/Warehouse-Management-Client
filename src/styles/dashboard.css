@@ -281,3 +281,21 @@
         height: 260px;
     }
 }
+
+/* Biểu đồ có thể tương tác */
+.dashboard-chart-wrap .recharts-wrapper {
+    cursor: pointer;
+}
+
+.dashboard-chart-wrap .recharts-surface {
+    outline: none;
+}
+
+.dashboard-panel-header .secondary-button {
+    flex-shrink: 0;
+}
+
+.dashboard-panel-header .secondary-button:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+}

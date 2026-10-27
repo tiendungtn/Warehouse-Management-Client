@@ -176,6 +176,24 @@ export default function DashboardPage() {
 
   const totalStockItems = stockData.reduce((sum, item) => sum + item.value, 0);
 
+  const goToRevenueReport = () => {
+    navigate("/reports/revenue");
+  };
+
+  const goToWarehouseActivity = (entry) => {
+    // Nếu người dùng nhấp vào cột phiếu xuất, mở danh sách phiếu xuất.
+    if (
+      entry?.dataKey === "issueCount" ||
+      entry?.dataKey === "previousIssueCount"
+    ) {
+      navigate("/issues");
+      return;
+    }
+
+    // Mặc định mở danh sách phiếu nhập.
+    navigate("/receipts");
+  };
+
   const handleStockChartClick = (entry) => {
     if (entry?.filter) {
       navigate(`/reports/stock?stockFilter=${entry.filter}`);
@@ -284,11 +302,7 @@ export default function DashboardPage() {
                     left: 8,
                     bottom: 4,
                   }}
-                  onClick={(state) => {
-                    if (state?.activePayload?.length) {
-                      navigate("/reports/revenue");
-                    }
-                  }}
+                  onClick={goToRevenueReport}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
 
@@ -359,7 +373,7 @@ export default function DashboardPage() {
             <button
               type="button"
               className="secondary-button"
-              onClick={() => navigate("/reports/stock")}
+              onClick={goToRevenueReport}
             >
               Chi tiết
               <ArrowRight size={15} />
@@ -453,8 +467,10 @@ export default function DashboardPage() {
                   bottom: 4,
                 }}
                 onClick={(state) => {
-                  if (state?.activePayload?.length) {
-                    navigate("/receipts");
+                  const activeEntry = state?.activePayload?.[0]?.payload;
+
+                  if (activeEntry) {
+                    goToWarehouseActivity(state.activePayload[0]);
                   }
                 }}
               >
@@ -485,6 +501,7 @@ export default function DashboardPage() {
                   fill="#2563eb"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
+                  onClick={() => navigate("/receipts")}
                 />
 
                 <Bar
@@ -493,6 +510,7 @@ export default function DashboardPage() {
                   fill="#93c5fd"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
+                  onClick={() => navigate("/receipts")}
                 />
 
                 <Bar
@@ -501,6 +519,7 @@ export default function DashboardPage() {
                   fill="#10b981"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
+                  onClick={() => navigate("/issues")}
                 />
 
                 <Bar
@@ -509,6 +528,7 @@ export default function DashboardPage() {
                   fill="#a7f3d0"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
+                  onClick={() => navigate("/issues")}
                 />
               </BarChart>
             </ResponsiveContainer>
