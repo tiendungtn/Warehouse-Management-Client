@@ -3,9 +3,7 @@ import {
   AlertTriangle,
   Check,
   LoaderCircle,
-  Plus,
   ShieldCheck,
-  Trash2,
   X,
 } from "lucide-react";
 
@@ -13,6 +11,8 @@ import {
   getUserPermissionsApi,
   updateUserPermissionsApi,
 } from "../../api/userApi";
+import PermissionCheckboxTable from "./PermissionCheckboxTable";
+import "../../styles/users.css";
 
 const PERMISSION_GROUPS = [
   {
@@ -93,66 +93,13 @@ const PERMISSION_GROUPS = [
   },
 ];
 
-// Ma trận hiển thị theo role hiện được thống nhất trong kế hoạch.
-// Đây là dữ liệu hiển thị ở frontend, không thay thế kiểm tra quyền backend.
-const ROLE_BASELINES = {
-  Admin: PERMISSION_GROUPS.flatMap((group) =>
-    group.items.map(([code]) => code),
-  ),
-
-  Manager: [
-    "products.view",
-    "products.create",
-    "products.edit",
-    "categories.view",
-    "categories.create",
-    "categories.edit",
-    "receipts.view",
-    "receipts.create",
-    "receipts.edit",
-    "receipts.approve",
-    "issues.view",
-    "issues.create",
-    "issues.edit",
-    "issues.approve",
-    "invoices.view",
-    "invoices.create",
-    "invoices.download",
-    "reports.stock.view",
-    "reports.stock.export",
-    "reports.revenue.view",
-  ],
-
-  Staff: [
-    "products.view",
-    "categories.view",
-    "receipts.view",
-    "receipts.create",
-    "issues.view",
-    "issues.create",
-    "invoices.view",
-    "reports.stock.view",
-  ],
-};
-
-const emptyOverride = () => ({
-  permissionCode: "",
-  effect: "Grant",
-  reason: "",
-});
-
 export default function UserPermissionsModal({ user, onClose, onSaved }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-
-  const [permissionMode, setPermissionMode] = useState("RoleBased");
-  const [overrides, setOverrides] = useState([]);
-  const [effectivePermissions, setEffectivePermissions] = useState([]);
-  const [apiSupportsEditor, setApiSupportsEditor] = useState(false);
-
   const [rolePermissions, setRolePermissions] = useState([]);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [apiSupportsEditor, setApiSupportsEditor] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -161,45 +108,31 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
       try {
         setLoading(true);
         setError("");
-        setNotice("");
 
         const data = await getUserPermissionsApi(user.id);
+
         if (!active) return;
 
-        if (!data || !Array.isArray(data.rolePermissions)) {
+        if (
+          !data ||
+          !Array.isArray(data.rolePermissions) ||
+          !Array.isArray(data.effectivePermissions)
+        ) {
           throw new Error(
-            "API chưa trả về cấu hình phân quyền đúng định dạng.",
+            "API chưa trả về rolePermissions và effectivePermissions đúng định dạng.",
           );
         }
+
         setRolePermissions(data.rolePermissions);
-
-        setPermissionMode(
-          data.permissionMode === "Custom" ? "Custom" : "RoleBased",
-        );
-
-        setOverrides(
-          Array.isArray(data.permissionOverrides)
-            ? data.permissionOverrides.map((item) => ({
-                permissionCode: item.permissionCode,
-                effect: item.effect,
-                reason: item.reason ?? "",
-              }))
-            : [],
-        );
-
-        setEffectivePermissions(
-          Array.isArray(data.effectivePermissions)
-            ? data.effectivePermissions
-            : [],
-        );
-
+        setSelectedPermissions(data.effectivePermissions);
         setApiSupportsEditor(true);
-        setNotice("");
       } catch (err) {
         if (!active) return;
 
         setError(
-          err?.response?.data?.message || "Không thể tải cấu hình phân quyền.",
+          err?.response?.data?.message ||
+            err?.message ||
+            "Không thể tải cấu hình phân quyền.",
         );
       } finally {
         if (active) setLoading(false);
@@ -213,115 +146,48 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
     };
   }, [user.id]);
 
-  const overrideCodes = useMemo(
-    () => overrides.map((item) => item.permissionCode).filter(Boolean),
-    [overrides],
-  );
+  const handleToggle = (code, checked) => {
+    setSelectedPermissions((current) => {
+      const next = new Set(current);
 
-  const validationError = useMemo(() => {
-    if (permissionMode === "RoleBased" && overrides.length > 0) {
-      return "RoleBased không được chứa quyền ghi đè cá nhân.";
-    }
-
-    if (permissionMode === "Custom" && overrides.length > 2) {
-      return "Chỉ được cấu hình tối đa 2 quyền ghi đè.";
-    }
-
-    const seen = new Set();
-
-    for (const item of overrides) {
-      const code = item.permissionCode.trim().toLowerCase();
-
-      if (!code) return "Vui lòng chọn quyền cho mỗi override.";
-
-      if (seen.has(code)) return "Không được chọn trùng một quyền.";
-
-      seen.add(code);
-
-      const roleHasPermission = rolePermissions.includes(item.permissionCode);
-
-      if (
-        (item.effect === "Grant" && roleHasPermission) ||
-        (item.effect === "Deny" && !roleHasPermission)
-      ) {
-        return `${item.permissionCode} đã trùng với quyền cơ sở của vai trò.`;
+      if (checked) {
+        next.add(code);
+      } else {
+        next.delete(code);
       }
-    }
 
-    return "";
-  }, [permissionMode, overrides, rolePermissions]);
-
-  const previewPermissions = useMemo(() => {
-    const result = new Set(rolePermissions);
-
-    if (permissionMode === "Custom") {
-      for (const item of overrides) {
-        if (!item.permissionCode) continue;
-
-        if (item.effect === "Deny") {
-          result.delete(item.permissionCode);
-        } else {
-          result.add(item.permissionCode);
-        }
-      }
-    }
-
-    return result;
-  }, [permissionMode, overrides, rolePermissions]);
-
-  const addOverride = () => {
-    setError("");
-    setNotice("");
-
-    if (overrides.length >= 2) {
-      setError("Chỉ được cấu hình tối đa 2 quyền ghi đè.");
-      return;
-    }
-
-    setPermissionMode("Custom");
-    setOverrides((current) => [...current, emptyOverride()]);
+      return [...next];
+    });
   };
 
-  const updateOverride = (index, field, value) => {
-    setOverrides((current) =>
-      current.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item,
-      ),
+  const permissionOverrides = useMemo(() => {
+    const roleSet = new Set(rolePermissions);
+    const selectedSet = new Set(selectedPermissions);
+
+    return PERMISSION_GROUPS.flatMap((group) =>
+      group.items.flatMap(([permissionCode]) => {
+        const roleAllows = roleSet.has(permissionCode);
+        const shouldAllow = selectedSet.has(permissionCode);
+
+        if (roleAllows === shouldAllow) return [];
+
+        return [
+          {
+            permissionCode,
+            effect: shouldAllow ? "Grant" : "Deny",
+            reason: null,
+          },
+        ];
+      }),
     );
-  };
-
-  const removeOverride = (index) => {
-    setOverrides((current) =>
-      current.filter((_, itemIndex) => itemIndex !== index),
-    );
-  };
-
-  const handleModeChange = (mode) => {
-    setError("");
-    setNotice("");
-    setPermissionMode(mode);
-
-    // Khi chuyển về RoleBased, xóa override khỏi bản nháp.
-    // Chỉ thay đổi dữ liệu local; chưa lưu xuống server.
-    if (mode === "RoleBased") {
-      setOverrides([]);
-    }
-  };
+  }, [rolePermissions, selectedPermissions]);
 
   const handleSave = async (event) => {
     event.preventDefault();
     setError("");
-    setNotice("");
 
     if (!apiSupportsEditor) {
-      setError(
-        "Chưa thể lưu: API chưa trả về cấu hình phân quyền hiện tại. Hãy cập nhật hợp đồng GET permissions ở backend trước.",
-      );
-      return;
-    }
-
-    if (validationError) {
-      setError(validationError);
+      setError("Không thể lưu vì chưa tải được cấu hình quyền hiện tại.");
       return;
     }
 
@@ -329,22 +195,17 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
       setSaving(true);
 
       await updateUserPermissionsApi(user.id, {
-        permissionMode,
-        permissionOverrides:
-          permissionMode === "Custom"
-            ? overrides.map((item) => ({
-                permissionCode: item.permissionCode,
-                effect: item.effect,
-                reason: item.reason.trim() || null,
-              }))
-            : [],
+        permissionMode: permissionOverrides.length > 0 ? "Custom" : "RoleBased",
+        permissionOverrides,
       });
 
       await onSaved?.();
       onClose();
     } catch (err) {
       setError(
-        err?.response?.data?.message || "Không thể lưu cấu hình phân quyền.",
+        err?.response?.data?.message ||
+          err?.message ||
+          "Không thể lưu cấu hình phân quyền.",
       );
     } finally {
       setSaving(false);
@@ -355,13 +216,11 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
     <div
       className="permission-modal-backdrop"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !saving) {
-          onClose();
-        }
+        if (event.target === event.currentTarget && !saving) onClose();
       }}
     >
       <section
-        className="permission-modal"
+        className="permission-modal permission-matrix-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="permission-modal-title"
@@ -404,245 +263,35 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
                 </div>
               )}
 
-              {notice && (
-                <div className="permission-alert permission-alert-warning">
-                  <AlertTriangle size={17} />
-                  <span>{notice}</span>
-                </div>
-              )}
-
               <section className="permission-section">
                 <div className="permission-section-heading">
                   <div>
-                    <h3>Chế độ phân quyền</h3>
-                    <p>Quyết định cách tính quyền hiệu lực của tài khoản.</p>
-                  </div>
-                </div>
-
-                <div className="permission-mode-options">
-                  <label
-                    className={`permission-mode-card ${
-                      permissionMode === "RoleBased" ? "selected" : ""
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="permissionMode"
-                      value="RoleBased"
-                      checked={permissionMode === "RoleBased"}
-                      onChange={() => handleModeChange("RoleBased")}
-                      disabled={!apiSupportsEditor}
-                    />
-                    <span className="permission-mode-copy">
-                      <strong>Theo vai trò</strong>
-                      <span>
-                        Chỉ sử dụng quyền được gán cho role {user.role}.
-                      </span>
-                    </span>
-                  </label>
-
-                  <label
-                    className={`permission-mode-card ${
-                      permissionMode === "Custom" ? "selected" : ""
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="permissionMode"
-                      value="Custom"
-                      checked={permissionMode === "Custom"}
-                      onChange={() => handleModeChange("Custom")}
-                      disabled={!apiSupportsEditor}
-                    />
-                    <span className="permission-mode-copy">
-                      <strong>Tùy chỉnh</strong>
-                      <span>
-                        Quyền cơ sở cộng tối đa 2 quyền override cá nhân.
-                      </span>
-                    </span>
-                  </label>
-                </div>
-              </section>
-
-              {permissionMode === "Custom" && (
-                <section className="permission-section">
-                  <div className="permission-section-heading permission-override-heading">
-                    <div>
-                      <h3>Quyền ghi đè cá nhân</h3>
-                      <p>
-                        {overrides.length}/2 quyền · Grant cấp thêm quyền, Deny
-                        từ chối quyền cơ sở.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="permission-add-button"
-                      onClick={addOverride}
-                      disabled={overrides.length >= 2 || !apiSupportsEditor}
-                    >
-                      <Plus size={16} />
-                      Thêm override
-                    </button>
-                  </div>
-
-                  {overrides.length === 0 ? (
-                    <div className="permission-empty-overrides">
-                      Chưa có quyền ghi đè. Người dùng vẫn sử dụng quyền cơ sở
-                      của vai trò.
-                    </div>
-                  ) : (
-                    <div className="permission-override-list">
-                      {overrides.map((item, index) => (
-                        <div
-                          className="permission-override-card"
-                          key={`${index}-${item.permissionCode}`}
-                        >
-                          <div className="permission-override-top">
-                            <span className="permission-override-number">
-                              Override {index + 1}
-                            </span>
-
-                            <button
-                              type="button"
-                              className="permission-remove-button"
-                              onClick={() => removeOverride(index)}
-                              disabled={!apiSupportsEditor}
-                              aria-label={`Xóa override ${index + 1}`}
-                            >
-                              <Trash2 size={15} />
-                              Xóa
-                            </button>
-                          </div>
-
-                          <div className="permission-override-fields">
-                            <label>
-                              <span>Quyền</span>
-                              <select
-                                value={item.permissionCode}
-                                onChange={(event) =>
-                                  updateOverride(
-                                    index,
-                                    "permissionCode",
-                                    event.target.value,
-                                  )
-                                }
-                                disabled={!apiSupportsEditor}
-                                required
-                              >
-                                <option value="">Chọn quyền...</option>
-
-                                {PERMISSION_GROUPS.map((group) => (
-                                  <optgroup label={group.name} key={group.name}>
-                                    {group.items.map(([code, label]) => (
-                                      <option
-                                        key={code}
-                                        value={code}
-                                        disabled={
-                                          overrideCodes.includes(code) &&
-                                          code !== item.permissionCode
-                                        }
-                                      >
-                                        {label} ({code})
-                                      </option>
-                                    ))}
-                                  </optgroup>
-                                ))}
-                              </select>
-                            </label>
-
-                            <label>
-                              <span>Hiệu ứng</span>
-                              <select
-                                value={item.effect}
-                                onChange={(event) =>
-                                  updateOverride(
-                                    index,
-                                    "effect",
-                                    event.target.value,
-                                  )
-                                }
-                                disabled={!apiSupportsEditor}
-                              >
-                                <option value="Grant">Grant — Cấp quyền</option>
-                                <option value="Deny">
-                                  Deny — Từ chối quyền
-                                </option>
-                              </select>
-                            </label>
-                          </div>
-
-                          <label className="permission-reason-field">
-                            <span>Lý do (không bắt buộc)</span>
-                            <input
-                              type="text"
-                              value={item.reason}
-                              onChange={(event) =>
-                                updateOverride(
-                                  index,
-                                  "reason",
-                                  event.target.value,
-                                )
-                              }
-                              maxLength={300}
-                              placeholder=""
-                              disabled={!apiSupportsEditor}
-                            />
-                            <small>{item.reason.length}/300 ký tự</small>
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              )}
-
-              <section className="permission-section">
-                <div className="permission-section-heading">
-                  <div>
-                    <h3>Quyền hiệu lực dự kiến</h3>
+                    <h3>Quyền truy cập</h3>
                     <p>
-                      {previewPermissions.size} quyền được phép theo cấu hình
-                      đang chỉnh sửa.
+                      Bật checkbox để cấp quyền, bỏ chọn để thu hồi quyền. Thay
+                      đổi chỉ được áp dụng sau khi lưu.
                     </p>
                   </div>
                 </div>
 
-                <div className="permission-effective-groups">
-                  {PERMISSION_GROUPS.map((group) => {
-                    const items = group.items.filter(([code]) =>
-                      previewPermissions.has(code),
-                    );
-
-                    return (
-                      <div
-                        className="permission-effective-group"
-                        key={group.name}
-                      >
-                        <h4>{group.name}</h4>
-
-                        {items.length === 0 ? (
-                          <p className="permission-no-access">
-                            Không có quyền trong nhóm này.
-                          </p>
-                        ) : (
-                          <div className="permission-effective-list">
-                            {items.map(([code, label]) => (
-                              <span
-                                className="permission-effective-chip"
-                                key={code}
-                                title={code}
-                              >
-                                <Check size={13} />
-                                {label}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div className="permission-selection-summary">
+                  <strong>{selectedPermissions.length}</strong>
+                  <span>
+                    /{" "}
+                    {PERMISSION_GROUPS.reduce(
+                      (total, group) => total + group.items.length,
+                      0,
+                    )}{" "}
+                    quyền được chọn
+                  </span>
                 </div>
+
+                <PermissionCheckboxTable
+                  groups={PERMISSION_GROUPS}
+                  selectedPermissions={selectedPermissions}
+                  onToggle={handleToggle}
+                  disabled={saving || !apiSupportsEditor}
+                />
               </section>
             </div>
 
@@ -659,12 +308,7 @@ export default function UserPermissionsModal({ user, onClose, onSaved }) {
               <button
                 type="submit"
                 className="primary-button"
-                disabled={
-                  saving ||
-                  loading ||
-                  !apiSupportsEditor ||
-                  Boolean(validationError)
-                }
+                disabled={saving || loading || !apiSupportsEditor}
               >
                 {saving ? (
                   <>

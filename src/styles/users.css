@@ -1052,3 +1052,211 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+
+.permission-matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+
+.permission-matrix-group {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 10px;
+    background: var(--card-background, #fff);
+}
+
+.permission-matrix-group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background: var(--surface-muted, #f8fafc);
+}
+
+.permission-matrix-group-heading>div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.permission-matrix-group-heading h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.permission-matrix-group-heading span {
+    color: var(--text-secondary, #64748b);
+    font-size: 12px;
+}
+
+.permission-select-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 7px 9px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--text-primary, #334155);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.permission-select-group:hover:not(:disabled) {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.permission-select-group:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.permission-matrix-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.permission-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.permission-matrix-table th,
+.permission-matrix-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color, #edf0f4);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.permission-matrix-table th {
+    color: var(--text-secondary, #64748b);
+    background: var(--card-background, #fff);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+}
+
+.permission-matrix-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.permission-matrix-table tbody tr:hover {
+    background: var(--surface-muted, #f8fafc);
+}
+
+.permission-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    cursor: pointer;
+}
+
+.permission-code {
+    overflow-wrap: anywhere;
+    color: var(--text-secondary, #64748b);
+    font-size: 12px;
+}
+
+.permission-checkbox-column {
+    width: 95px;
+    text-align: center !important;
+}
+
+.permission-matrix-table input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: #2563eb;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.permission-matrix-table input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@media (max-width: 600px) {
+    .permission-matrix-group-heading {
+        align-items: flex-start;
+    }
+
+    .permission-matrix-table th,
+    .permission-matrix-table td {
+        padding: 9px 8px;
+    }
+
+    .permission-code {
+        min-width: 140px;
+    }
+
+    .permission-checkbox-column {
+        width: 72px;
+    }
+}
+
+
+.permission-matrix-modal {
+    display: flex;
+    flex-direction: column;
+    width: min(1100px, calc(100vw - 32px));
+    max-width: 1100px;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    min-height: 0;
+}
+
+.permission-matrix-modal>form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.permission-matrix-modal .permission-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.permission-matrix-modal .permission-modal-header,
+.permission-matrix-modal .permission-modal-footer {
+    flex: 0 0 auto;
+}
+
+.permission-selection-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin: 12px 0 16px;
+    color: var(--text-secondary, #64748b);
+    font-size: 13px;
+}
+
+.permission-selection-summary strong {
+    color: var(--text-primary, #0f172a);
+    font-size: 20px;
+}
+
+@media (max-width: 600px) {
+    .permission-matrix-modal {
+        width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+        max-height: calc(100dvh - 20px);
+    }
+}

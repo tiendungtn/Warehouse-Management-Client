@@ -219,6 +219,24 @@ export default function StockReportPage() {
     });
   };
 
+  const handleSort = (field) => {
+    const currentSortBy = String(filters.sortBy || "stock");
+    const currentSortOrder = String(filters.sortOrder || "asc");
+
+    const nextSortOrder =
+      currentSortBy === field && currentSortOrder === "asc" ? "desc" : "asc";
+
+    applyFilters(
+      {
+        ...filters,
+        sortBy: field,
+        sortOrder: nextSortOrder,
+        page: "1",
+      },
+      false,
+    );
+  };
+
   const handleExport = async () => {
     try {
       setExporting(true);
