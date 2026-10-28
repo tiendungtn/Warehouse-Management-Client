@@ -1165,12 +1165,6 @@
     cursor: pointer;
 }
 
-.permission-code {
-    overflow-wrap: anywhere;
-    color: var(--text-secondary, #64748b);
-    font-size: 12px;
-}
-
 .permission-checkbox-column {
     width: 95px;
     text-align: center !important;

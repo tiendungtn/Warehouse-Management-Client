@@ -61,7 +61,6 @@ export default function PermissionCheckboxTable({
                 <thead>
                   <tr>
                     <th>Quyền</th>
-                    <th>Mã quyền</th>
                     <th className="permission-checkbox-column">Cấp quyền</th>
                   </tr>
                 </thead>
@@ -78,17 +77,13 @@ export default function PermissionCheckboxTable({
                         </label>
                       </td>
 
-                      <td>
-                        <code className="permission-code">{code}</code>
-                      </td>
-
                       <td className="permission-checkbox-column">
                         <input
                           id={`permission-${code.replaceAll(".", "-")}`}
                           type="checkbox"
                           checked={selected.has(code)}
                           disabled={disabled}
-                          aria-label={`${label} (${code})`}
+                          aria-label={label}
                           onChange={(event) =>
                             onToggle(code, event.target.checked)
                           }
